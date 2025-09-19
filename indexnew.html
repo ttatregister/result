@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>TTAT Result Online</title>
+  <meta name="viewport" content="width=1280"> <!-- บังคับ Desktop -->
+  <style>
+    :root {
+      --brand: #003366;
+      --brand-2: #0066cc;
+      --brand-2-hover: #004d99;
+      --bg: #f4f4f4;
+    }
+    html, body {
+      margin: 0; padding: 0;
+      min-width: 1280px;         /* กันไม่ให้ย่อเป็น mobile */
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+    }
+    header {
+      background: var(--brand);
+      color: #fff;
+      padding: 20px;
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      position: sticky; top: 0; z-index: 10;
+    }
+    .wrap {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+      text-align: center;
+    }
+    .btn {
+      display: inline-block;
+      text-decoration: none;
+      background: var(--brand-2);
+      color: #fff;
+      padding: 15px 25px;
+      margin: 10px;
+      font-size: 18px;
+      border-radius: 8px;
+      transition: background 0.2s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .btn:hover { background: var(--brand-2-hover); }
+  </style>
+</head>
+<body>
+  <header>TTAT Result Online</header>
+  <div class="wrap">
+    <!-- ปุ่มรายการแข่งขัน: แก้ชื่อ/เพิ่ม/ลบ ได้ตามต้องการ -->
+    <a class="btn" href="event-chiangrai-open-2025.html">CHIANG RAI OPEN 2025</a>
+    <a class="btn" href="event-thaioil-cup-2025.html">THAIOIL CUP 2025</a>
+    <a class="btn" href="event-butterfly-open-2025.html">BUTTERFLY OPEN 2025</a>
+  </div>
+</body>
+</html>
