@@ -3,38 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <title>TTAT Result Online</title>
-  <!-- บังคับ Desktop View -->
   <meta name="viewport" content="width=1280">
   <style>
     html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
       min-width: 1280px;
-      display: flex;
-      flex-direction: column;
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      text-align: center;
     }
     header {
       background: #003366;
-      color: white;
-      text-align: center;
-      padding: 15px;
-      font-size: 20px;
+      color: #fff;
+      padding: 20px;
+      font-size: 24px;
       font-weight: bold;
     }
-    iframe {
-      border: none;
-      width: 100%;
-      flex-grow: 1; /* iframe จะขยายเต็มพื้นที่ที่เหลือ */
+    .wrap {
+      margin-top: 60px;
     }
+    .btn {
+      display: inline-block;
+      background: #0066cc;
+      color: white;
+      padding: 15px 30px;
+      margin: 10px;
+      font-size: 18px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background 0.3s;
+    }
+    .btn:hover { background: #004d99; }
   </style>
 </head>
 <body>
-  <header>
-    TTAT Result Online
-  </header>
-  <iframe 
-    src="https://1drv.ms/x/c/f6e31c8d11f28b7e/IQR1tRFRIOZnRa7a3unigG7VAW_BkHN2LZYolAcY1qAoBHE?em=2&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True&wdInConfigurator=True&wdInConfigurator=True">
-  </iframe>
+  <header>TTAT Result Online</header>
+  <div class="wrap">
+    <a class="btn" href="event-chiangrai-open-2025.html">CHIANG RAI OPEN 2025</a>
+  </div>
 </body>
 </html>
