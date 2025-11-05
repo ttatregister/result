@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ค้นหาข้อมูลนักกีฬา • TTAT Result Online</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0b1020;--card:#12182b;--line:#1d2743;--text:#eaf2ff;--muted:#9db0d1;--accent:#7cc4ff}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Arial}
+  header{background:#08335f;padding:16px 0;margin:0 0 18px}
+  header .wrap{max-width:1100px;margin:0 auto;padding:0 16px;font-weight:700;font-size:20px}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+  .sub{color:var(--muted);font-size:13px;margin:6px 0 18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px}
+  .controls{padding:14px 16px;display:flex;gap:10px;flex-wrap:wrap}
+  input,button{border:1px solid var(--line);border-radius:10px;background:#0f1530;color:var(--text);padding:10px 12px;font-size:14px}
+  input{min-width:260px}
+  button{background:#17305a;cursor:pointer}
+  button:hover{filter:brightness(1.05)}
+  .headline{margin:10px 2px 8px;font-weight:700}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:10px 12px;border-bottom:1px solid var(--line)} th{color:var(--muted);text-align:left}
+  tr:hover td{background:#111936}
+  .muted{color:var(--muted)}
+  .back a{color:#bfe1ff;text-decoration:none}
+  .note{margin-top:10px;color:#b9c9e6;font-size:12px}
+</style>
+</head>
+<body>
+<header><div class="wrap">TTAT Result Online — ค้นหาข้อมูลนักกีฬา</div></header>
+<div class="wrap">
+  <div class="sub back">← <a href="./">กลับหน้าหลัก</a></div>
+
+  <section class="card controls">
+    <input id="nameInput" list="nameList" placeholder="พิมพ์ชื่อ-สกุล นักกีฬา เช่น ภาคภูมิ สงวนสิน">
+    <datalist id="nameList"></datalist>
+    <button id="btnSearch">ค้นหา</button>
+    <button id="btnClear">ล้าง</button>
+    <input id="qInput" placeholder="กรองคำใน 'รายการ' หรือ 'ประเภท' (ไม่บังคับ)">
+  </section>
+
+  <div class="headline" id="selectedName" style="display:none"></div>
+
+  <section class="card" style="margin-top:12px">
+    <table id="tbl">
+      <thead>
+        <tr>
+          <th style="width:110px">ปี จัดแข่งขัน</th>
+          <th>รายการ</th>
+          <th style="width:260px">ประเภท</th>
+          <th style="width:140px">ตำแหน่ง</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="4" class="muted">กำลังโหลดข้อมูลจาก Excel...</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="note" id="noteCORS" style="display:none">
+    ⚠️ โหลดไฟล์จาก OneDrive ไม่ได้ (อาจถูกบล็อก CORS) — ถ้าเห็นข้อความนี้บ่อย ให้พิจารณาสร้างไฟล์
+    <code>data.csv</code> ใน repo แล้วเปลี่ยนโหมดเป็นอ่าน CSV แทน
+  </div>
+</div>
+
+<!-- ใช้ SheetJS เพื่ออ่านไฟล์ Excel -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
+<script>
+/** ลิงก์ดาวน์โหลดตรงของไฟล์ Excel บน OneDrive (ของคุณ) */
+const EXCEL_URL =
+  'https://1drv.ms/x/c/f6e31c8d11f28b7e/Ef1Fl5TP-RRKkEdv6F9B1v4Bde33yjpwc-WGrIGaTNKJeg?download=1';
+
+/** คีย์หัวคอลัมน์ที่ต้องมีในไฟล์ */
+const COLS = {
+  name: 'ชื่อ - สกุล',
+  year: 'ปี จัดแข่งขัน',
+  event: 'รายการ',
+  type: 'ประเภท',
+  pos:  'ตำแหน่ง',
+};
+
+let rows = [];
+
+/** ทำความสะอาดสตริง */
+const norm = s => (s ?? '').toString().replace(/\u00A0/g,' ').replace(/\s+/g,' ').trim();
+
+/** โหลดไฟล์ Excel จาก OneDrive แล้ว parse เป็นแถวข้อมูล */
+async function loadExcel() {
+  try {
+    const url = EXCEL_URL + (EXCEL_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
+    const res = await fetch(url, { headers: { 'Cache-Control': 'no-cache' }});
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const ab = await res.arrayBuffer();
+    const wb = XLSX.read(ab, { type:'array' });
+    const ws = wb.Sheets[wb.SheetNames[0]];          // ใช้ชีทแรก
+    const data = XLSX.utils.sheet_to_json(ws, { defval:'' });
+
+    rows = data.map(r => ({
+      name:  norm(r[COLS.name]),
+      year:  +norm(r[COLS.year]) || null,
+      event: norm(r[COLS.event]),
+      type:  norm(r[COLS.type]),
+      pos:   norm(r[COLS.pos]),
+    })).filter(r => r.name && r.year);
+
+    // เติมรายชื่อ (autocomplete)
+    const names = [...new Set(rows.map(r=>r.name))].sort((a,b)=>a.localeCompare(b,'th'));
+    document.getElementById('nameList').innerHTML = names.map(n=>`<option value="${n}">`).join('');
+
+    setBody('<tr><td colspan="4" class="muted">พิมพ์ชื่อแล้วกดค้นหา</td></tr>');
+  } catch (e) {
+    console.error('โหลด Excel ล้มเหลว:', e);
+    setBody('<tr><td colspan="4" class="muted">โหลดข้อมูลจาก OneDrive ไม่ได้</td></tr>');
+    document.getElementById('noteCORS').style.display = 'block';
+  }
+}
+
+/** วาดผลลัพธ์ลงตาราง */
+function setBody(html) {
+  document.querySelector('#tbl tbody').innerHTML = html;
+}
+
+/** ค้นหาตามชื่อ + ตัวกรองคำ */
+function search() {
+  const name = norm(document.getElementById('nameInput').value);
+  const q = norm(document.getElementById('qInput').value).toLowerCase();
+  if (!name) {
+    setBody('<tr><td colspan="4" class="muted">พิมพ์ชื่อแล้วกดค้นหา</td></tr>');
+    document.getElementById('selectedName').style.display = 'none';
+    return;
+  }
+
+  const filtered = rows
+    .filter(r => r.name.toLowerCase() === name.toLowerCase())
+    .filter(r => !q || r.event.toLowerCase().includes(q) || r.type.toLowerCase().includes(q))
+    .sort((a,b) => b.year - a.year);
+
+  const head = document.getElementById('selectedName');
+  head.style.display = 'block';
+  head.textContent = name;
+
+  if (!filtered.length) {
+    setBody(`<tr><td colspan="4" class="muted">ไม่พบข้อมูลของ “${name}”</td></tr>`);
+    return;
+  }
+
+  setBody(filtered.map(r => `
+    <tr>
+      <td class="muted">${r.year}</td>
+      <td>${r.event}</td>
+      <td>${r.type}</td>
+      <td>${r.pos || '-'}</td>
+    </tr>
+  `).join(''));
+}
+
+/** ผูกปุ่ม/อีเวนต์ */
+document.getElementById('btnSearch').addEventListener('click', search);
+document.getElementById('btnClear').addEventListener('click', () => {
+  document.getElementById('nameInput').value = '';
+  document.getElementById('qInput').value = '';
+  setBody('<tr><td colspan="4" class="muted">พิมพ์ชื่อแล้วกดค้นหา</td></tr>');
+  document.getElementById('selectedName').style.display = 'none';
+});
+document.getElementById('nameInput').addEventListener('keydown', e => { if (e.key === 'Enter') search(); });
+document.getElementById('qInput').addEventListener('keydown', e => { if (e.key === 'Enter') search(); });
+
+/** เริ่มทำงาน */
+loadExcel();
+</script>
+</body>
+</html>
