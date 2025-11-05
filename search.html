@@ -1,278 +1,257 @@
 <!doctype html>
 <html lang="th">
 <head>
-  <meta charset="utf-8" />
-  <title>TTAT Result Online — ค้นหาข้อมูลนักกีฬา</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- ใช้ฟอนต์ & โทนสี -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <style>
-    :root{
-      --bg:#0b253c;
-      --card:#0f2f4c;
-      --line:#163d5f;
-      --text:#e9f2ff;
-      --muted:#9db0d1;
-      --accent:#2aa0ff;
-      --good:#46c081;
-      --bad:#ff6666;
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Arial}
-    a{color:#bfe1ff;text-decoration:none}
-    header{background:#07213a;padding:18px 16px;border-bottom:1px solid var(--line)}
-    header .wrap{max-width:1200px;margin:0 auto;display:flex;gap:16px;align-items:center}
-    header h1{margin:0;font-size:20px;font-weight:700}
-    header .back{color:var(--muted)}
-    main{max-width:1200px;margin:0 auto;padding:18px}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
-    .controls{display:flex;flex-wrap:wrap;gap:12px 10px;margin-bottom:14px}
-    input[type="text"]{
-      min-width:320px;
-      background:#0a2a45;border:1px solid var(--line);color:var(--text);
-      padding:12px 14px;border-radius:10px;font-size:15px;outline:none
-    }
-    input::placeholder{color:var(--muted)}
-    button{
-      background:#0f5130;border:1px solid #137a4a;color:#fff;
-      padding:10px 16px;border-radius:10px;cursor:pointer;font-weight:700
-    }
-    button.secondary{background:#0a2a45;border-color:#214b72}
-    .muted{color:var(--muted)}
-    .count{margin:10px 0 2px 0;font-size:13px;color:var(--muted)}
-    table{width:100%;border-collapse:collapse;margin-top:6px}
-    th,td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
-    thead th{background:#0e3354;font-weight:700;text-align:left}
-    tbody tr:hover{background:#0c2946}
-    /* คอลัมน์ชื่อซ่อนเมื่อค้นหาด้วยชื่อ */
-    .hide-name .col-name{display:none}
-    /* Sorting indicator */
-    th.sortable{cursor:pointer;user-select:none}
-    th.sortable .sort-ind{margin-left:6px;color:var(--muted);font-size:12px}
-    /* แถบแจ้ง */
-    .note{margin-top:10px;font-size:13px;color:var(--muted)}
-    .pill{display:inline-block;border:1px solid var(--line);padding:2px 8px;border-radius:999px;color:var(--muted);font-size:12px}
-  </style>
-  <!-- CSV Parser เพื่อความแม่นยำ (รองรับช่องที่มี , และ ") -->
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.5.2/papaparse.min.js"></script>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1280" />
+<title>TTAT Result Online — ค้นหาข้อมูลนักกีฬา</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b2236; --panel:#0f2d49; --line:#103a5a; --text:#e7f3ff;
+    --muted:#9db0c7; --accent:#37b3ff; --accent-2:#0a915c;
+  }
+  html,body{margin:0;padding:0;min-width:1280px;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Arial}
+  a{color:#8fd0ff;text-decoration:none}
+  a:hover{text-decoration:underline}
+  header{background:#062346;padding:16px 24px;font-weight:700;font-size:20px}
+  .wrap{max-width:1180px;margin:28px auto;padding:0 16px}
+  .back{margin-bottom:10px;display:inline-block}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 18px 8px}
+  .controls{display:flex;gap:12px;margin-bottom:12px}
+  input[type="text"]{flex:1;min-width:320px;background:#0b2236;color:var(--text);border:1px solid var(--line);
+    border-radius:10px;padding:12px 14px;font-size:15px;outline:none}
+  input::placeholder{color:var(--muted)}
+  .btn{background:#1473e6;border:1px solid #0e5bb8;color:#fff;border-radius:10px;padding:10px 18px;font-size:15px;cursor:pointer}
+  .btn:hover{filter:brightness(1.05)}
+  .btn-ghost{background:#143e5f;border:1px solid var(--line)}
+  .count{color:var(--muted);font-size:13px;margin:6px 0 14px}
+  .who{color:#cce9ff;font-size:14px;margin:-6px 0 10px}
+  table{width:100%;border-collapse:collapse;font-size:14px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  thead th{background:#0e2f4f;color:#fff;font-weight:700;text-align:left;padding:12px;border-bottom:1px solid var(--line);position:relative;user-select:none;cursor:pointer}
+  tbody td{padding:11px 12px;border-bottom:1px solid var(--line)}
+  tbody tr:nth-child(odd){background:#0e2a46}
+  tbody tr:nth-child(even){background:#0f2d49}
+  .muted{color:var(--muted)}
+  .hide-name th.col-name,.hide-name td.col-name{display:none}
+  .sort{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:#8fd0ff}
+  .badge{display:inline-block;background:#0a915c;border:1px solid #08764a;color:#eafff6;padding:2px 8px;border-radius:999px;font-size:12px;margin-left:8px}
+</style>
+
+<!-- ใช้ Papaparse แยก CSV ให้ทนทาน -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 <body>
-  <header>
-    <div class="wrap">
-      <a class="back" href="./"><span aria-hidden="true">←</span> กลับหน้าหลัก</a>
-      <h1>TTAT Result Online — ค้นหาข้อมูลนักกีฬา</h1>
+<header>TTAT Result Online — ค้นหาข้อมูลนักกีฬา</header>
+
+<div class="wrap">
+  <a class="back" href="./">← กลับหน้าหลัก</a>
+
+  <div class="card">
+    <div class="controls">
+      <input id="q-name" type="text" placeholder="พิมพ์ชื่อ-สกุล (พิมพบางส่วนได้ เช่น ภาคภูมิ)" />
+      <button id="btn-search" class="btn">ค้นหา</button>
+      <button id="btn-clear" class="btn btn-ghost">ล้าง</button>
+      <input id="q-free" type="text" placeholder="กรองคำใน ‘รายการ’ หรือ ‘ประเภท’ (ไม่บังคับ)"/>
     </div>
-  </header>
 
-  <main>
-    <div class="card">
-      <div class="controls">
-        <input id="qName" type="text" placeholder="พิมพ์ชื่อ-สกุล (พิมพ์บางส่วนได้ เช่น ภาคภูมิ)"/>
-        <button id="btnSearch">ค้นหา</button>
-        <button id="btnClear" class="secondary">ล้าง</button>
-        <input id="qFree" type="text" placeholder="กรองคำใน ‘รายการ’ หรือ ‘ประเภท’ (ไม่บังคับ)"/>
-      </div>
+    <div id="count" class="count"></div>
+    <div id="who" class="who"></div>
 
-      <div id="count" class="count"></div>
-
-      <div class="table-wrap">
-        <table id="tbl">
-          <thead>
-            <tr>
-              <th class="col-name sortable" data-key="name">ชื่อ - สกุล <span class="sort-ind"></span></th>
-              <th class="sortable" data-key="year" style="width:120px">ปี จัดแข่งขัน <span class="sort-ind"></span></th>
-              <th class="sortable" data-key="event">รายการ <span class="sort-ind"></span></th>
-              <th class="sortable" data-key="type" style="width:320px">ประเภท <span class="sort-ind"></span></th>
-              <th class="sortable" data-key="pos" style="width:160px">ตำแหน่ง <span class="sort-ind"></span></th>
-            </tr>
-          </thead>
-          <tbody id="rows">
-            <tr><td colspan="5" class="muted">กำลังโหลดข้อมูล…</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="note">
-        <span class="pill">วิธีใช้</span>
-        พิมพ์ชื่อบางส่วน (เช่น “ภาคภ” หรือ “อรวรรณ”) ได้เลย — ระบบจะค้นแบบยืดหยุ่น เผลอพิมพ์ผิดเล็กน้อยก็ยังหาเจอ
-      </div>
+    <div id="table-wrap">
+      <table id="tbl">
+        <thead>
+          <tr>
+            <th class="col-name" data-key="name">ชื่อ - สกุล <span class="sort" id="s-name"></span></th>
+            <th data-key="year">ปี จัดแข่งขัน <span class="sort" id="s-year"></span></th>
+            <th data-key="event">รายการ <span class="sort" id="s-event"></span></th>
+            <th data-key="type">ประเภท <span class="sort" id="s-type"></span></th>
+            <th data-key="pos">ตำแหน่ง <span class="sort" id="s-pos"></span></th>
+          </tr>
+        </thead>
+        <tbody id="rows">
+          <tr><td colspan="5" class="muted">กำลังโหลดข้อมูล…</td></tr>
+        </tbody>
+      </table>
     </div>
-  </main>
 
-  <script>
-    /*** -------------------- การตั้งค่า -------------------- ***/
-    // ชี้ไปที่ไฟล์ CSV ใน repo เดียวกัน (อย่าลืมวาง data.csv ไว้ที่ result/data.csv)
-    const CSV_URL = 'data.csv';
+  </div>
+</div>
 
-    /*** -------------------- สถานะ/ตัวแปร -------------------- ***/
-    let ALL = [];             // เก็บข้อมูลทั้งหมด
-    let VIEW = [];            // ผลหลังกรองเพื่อแสดง
-    let sortState = { key: 'year', dir: 'desc' }; // เริ่มเรียงปีมาก→น้อย
+<script>
+/* ===================== ตั้งค่าแหล่งข้อมูล CSV ===================== */
+const DATA_URL = 'data.csv'; // อยู่โฟลเดอร์เดียวกับไฟล์นี้
 
-    // DOM refs
-    const $name = document.getElementById('qName');
-    const $free = document.getElementById('qFree');
-    const $rows = document.getElementById('rows');
-    const $tbl  = document.getElementById('tbl');
-    const $count = document.getElementById('count');
+/* ===================== Utility ===================== */
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+const $name = $('#q-name');
+const $free = $('#q-free');
+const $btnSearch = $('#btn-search');
+const $btnClear  = $('#btn-clear');
+const $rows = $('#rows');
+const $count = $('#count');
+const $who = $('#who');
+const $tableWrap = $('#table-wrap');
+const $head = $('#tbl thead');
 
-    /*** -------------------- Utils: ทำความสะอาดข้อความ -------------------- ***/
-    const norm = s => (s ?? '')
-      .toString()
-      .normalize('NFC')
-      .replace(/\u00A0/g, ' ') // nbsp → space
-      .replace(/\s+/g,' ')
-      .trim();
+let ALL = [];     // data ทั้งหมด
+let VIEW = [];    // data หลังกรอง
+let SORT = {key:'year', dir:'desc'};  // เริ่มต้นเรียงปีมาก→น้อย
 
-    /*** -------------------- Levenshtein Distance (fuzzy) -------------------- ***/
-    function lev(a,b){
-      a = norm(a).toLowerCase();
-      b = norm(b).toLowerCase();
-      if(a === b) return 0;
-      const m = a.length, n = b.length;
-      if(!m) return n; if(!n) return m;
-      const d = Array.from({length:m+1}, (_,i)=>[i].concat(Array(n).fill(0)));
-      for(let j=0;j<=n;j++) d[0][j]=j;
-      for(let i=1;i<=m;i++){
-        for(let j=1;j<=n;j++){
-          const cost = a[i-1]===b[j-1] ? 0 : 1;
-          d[i][j] = Math.min(
-            d[i-1][j] + 1,      // deletion
-            d[i][j-1] + 1,      // insertion
-            d[i-1][j-1] + cost  // substitution
-          );
-        }
-      }
-      return d[m][n];
+// normalize ข้อความ (trim + ช่องว่างเดียว)
+const norm = s => (s || '').toString().trim().replace(/\s+/g,' ');
+// เหมือนเดิม แต่ lower-case เผื่อกรณีมีอักษรโรมัน/ตัวเลข
+const normLower = s => norm(s).toLowerCase();
+
+// Levenshtein distance
+function lev(a,b){
+  a = norm(a); b = norm(b);
+  const m = a.length, n = b.length;
+  const dp = Array.from({length:m+1},()=>Array(n+1).fill(0));
+  for(let i=0;i<=m;i++) dp[i][0] = i;
+  for(let j=0;j<=n;j++) dp[0][j] = j;
+  for(let i=1;i<=m;i++){
+    for(let j=1;j<=n;j++){
+      const cost = a[i-1] === b[j-1] ? 0 : 1;
+      dp[i][j] = Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+cost);
     }
+  }
+  return dp[m][n];
+}
+// fuzzy match ชื่อ: ยอมพิมพ์ผิด 1–2 ตัวอักษร (ตามความยาว query)
+function fuzzyMatchName(fullName, q){
+  if(!q) return true;
+  const needle = normLower(q);
+  const hay = normLower(fullName);
+  // partial contains ก่อน
+  if(hay.includes(needle)) return true;
+  // ถามคลาดเคลื่อน: threshold ตามความยาวคำค้น
+  const th = Math.max(1, Math.min(2, Math.floor(needle.length/5)));
+  return lev(hay, needle) <= th;
+}
+// กรองคำในรายการ/ประเภท: รองรับหลายคำคั่นด้วยช่องว่าง
+function freeFilter(ok1, ok2, q){
+  if(!q) return true;
+  const tokens = normLower(q).split(' ').filter(Boolean);
+  const text = `${normLower(ok1)} ${normLower(ok2)}`;
+  return tokens.every(t => text.includes(t));
+}
 
-    // fuzzyMatch: match ถ้าเป็นส่วนหนึ่ง หรือสะกดคลาดเคลื่อนเล็กน้อย
-    function fuzzyMatch(haystack, needle){
-      haystack = norm(haystack).toLowerCase();
-      needle   = norm(needle).toLowerCase();
-      if(!needle) return true;
-      if(haystack.includes(needle)) return true;
+/* ===================== โหลด CSV ===================== */
+async function loadData(){
+  try{
+    const res = await fetch(DATA_URL, {cache:'no-store'});
+    if(!res.ok) throw new Error('โหลดไฟล์ CSV ไม่ได้');
+    const csv = await res.text();
+    const parsed = Papa.parse(csv, {header:true, skipEmptyLines:true});
+    const rows = parsed.data;
+    // ชื่อคอลัมน์คาดหวัง: ชื่อ - สกุล, ปี จัดแข่งขัน, รายการ, ประเภท, ตำแหน่ง
+    ALL = rows.map(r => ({
+      name: norm(r['ชื่อ - สกุล']),
+      year: norm(r['ปี จัดแข่งขัน']),
+      event: norm(r['รายการ']),
+      type: norm(r['ประเภท']),
+      pos:  norm(r['ตำแหน่ง'])
+    })).filter(r => r.name || r.event || r.type || r.pos);
+    doSearch(); // แสดงครั้งแรก
+  }catch(e){
+    console.error(e);
+    $rows.innerHTML = `<tr><td colspan="5" class="muted">โหลดข้อมูลล้มเหลว: ${e.message}</td></tr>`;
+  }
+}
 
-      const dist = lev(haystack, needle);
-      // ยืดหยุ่น: ยิ่งคำยาว ยิ่งยอมคลาดเคลื่อนได้มากขึ้นเล็กน้อย
-      const allow = Math.max(1, Math.floor(needle.length/6)); // ยอม 1–2 ตัวโดยมาก
-      return dist <= allow;
+/* ===================== ค้นหา/เรนเดอร์ ===================== */
+function applySort(list){
+  const {key, dir} = SORT;
+  const sign = dir === 'asc' ? 1 : -1;
+  return list.slice().sort((a,b)=>{
+    if(key === 'year'){
+      const A = parseInt(a.year||'0',10), B = parseInt(b.year||'0',10);
+      return (A === B ? 0 : (A > B ? 1 : -1)) * sign;
+    }else{
+      const A = (a[key]||'').toString();
+      const B = (b[key]||'').toString();
+      return A.localeCompare(B,'th',{numeric:true,sensitivity:'base'}) * sign;
     }
+  });
+}
 
-    /*** -------------------- โหลด CSV -------------------- ***/
-    async function loadCSV(){
-      try{
-        const res = await fetch(CSV_URL, {cache:'no-store'});
-        const text = await res.text();
-        const parsed = Papa.parse(text, {header:true, skipEmptyLines:true});
-        // map ฟิลด์
-        ALL = parsed.data.map(r => ({
-          name : norm(r['ชื่อ - สกุล'] ?? r['ชื่อ-สกุล'] ?? r['name'] ?? ''),
-          year : Number(r['ปี จัดแข่งขัน'] ?? r['ปีจัดแข่งขัน'] ?? r['year'] ?? 0) || 0,
-          event: norm(r['รายการ'] ?? r['event'] ?? ''),
-          type : norm(r['ประเภท'] ?? r['type'] ?? ''),
-          pos  : norm(r['ตำแหน่ง'] ?? r['position'] ?? ''),
-        }));
-        doSearch();
-      }catch(e){
-        console.error(e);
-        $rows.innerHTML = `<tr><td colspan="5" class="muted">โหลดไฟล์ไม่ได้: ${e.message}</td></tr>`;
-      }
-    }
+function renderSortIcon(){
+  // เคลียร์ทั้งหมด
+  $$('.sort').forEach(el => el.textContent = '');
+  const map = {name:'#s-name', year:'#s-year', event:'#s-event', type:'#s-type', pos:'#s-pos'};
+  const $icon = $(map[SORT.key]);
+  if($icon) $icon.textContent = SORT.dir === 'asc' ? '▲' : '▼';
+}
 
-    /*** -------------------- จัดเรียง -------------------- ***/
-    function applySort(list){
-      const {key, dir} = sortState;
-      const factor = dir === 'asc' ? 1 : -1;
-      return list.slice().sort((a,b)=>{
-        let va = a[key] ?? '';
-        let vb = b[key] ?? '';
-        if(key === 'year'){
-          va = Number(va)||0; vb = Number(vb)||0;
-          return (va - vb) * factor;
-        }
-        // ข้อความ (ไทย)
-        return String(va).localeCompare(String(vb), 'th', {sensitivity:'base'}) * factor;
-      });
-    }
-    function updateSortIndicators(){
-      document.querySelectorAll('th.sortable .sort-ind').forEach(el=>el.textContent='');
-      const th = document.querySelector(`th.sortable[data-key="${sortState.key}"] .sort-ind`);
-      if(th) th.textContent = (sortState.dir==='asc') ? '▲' : '▼';
-    }
-    function bindSortHeaders(){
-      document.querySelectorAll('th.sortable').forEach(th=>{
-        th.addEventListener('click', ()=>{
-          const key = th.dataset.key;
-          if(sortState.key === key){
-            sortState.dir = (sortState.dir==='asc') ? 'desc' : 'asc';
-          }else{
-            sortState.key = key;
-            sortState.dir = (key==='year') ? 'desc' : 'asc';
-          }
-          doSearch();          // render ใหม่ตาม sort ล่าสุด
-          updateSortIndicators();
-        });
-      });
-    }
+function renderRows(list, hideName){
+  renderSortIcon();
+  // ซ่อนคอลัมน์ชื่อหรือไม่
+  $tableWrap.classList.toggle('hide-name', !!hideName);
 
-    /*** -------------------- เรนเดอร์ผลลัพธ์ -------------------- ***/
-    function renderRows(list, {showName}){
-      if(showName) $tbl.classList.remove('hide-name');
-      else         $tbl.classList.add('hide-name');
+  if(!list.length){
+    $rows.innerHTML = `<tr><td colspan="5" class="muted">ไม่พบข้อมูล</td></tr>`;
+    $count.textContent = '';
+    return;
+  }
+  list = applySort(list);
 
-      if(!list.length){
-        $rows.innerHTML = `<tr><td colspan="5" class="muted">ไม่พบข้อมูล</td></tr>`;
-        $count.textContent = '';
-        return;
-      }
+  const html = list.map(r => `
+    <tr>
+      <td class="col-name">${r.name || '-'}</td>
+      <td>${r.year || '-'}</td>
+      <td>${r.event || '-'}</td>
+      <td>${r.type || '-'}</td>
+      <td>${r.pos  || '-'}</td>
+    </tr>
+  `).join('');
+  $rows.innerHTML = html;
+  $count.textContent = `ทั้งหมด ${list.length.toLocaleString('th-TH')} รายการ`;
+}
 
-      list = applySort(list);
-      const html = list.map(r => `
-        <tr>
-          <td class="col-name">${showName ? (r.name||'-') : ''}</td>
-          <td>${r.year||'-'}</td>
-          <td>${r.event||'-'}</td>
-          <td>${r.type||'-'}</td>
-          <td>${r.pos||'-'}</td>
-        </tr>
-      `).join('');
-      $rows.innerHTML = html;
-      $count.textContent = `ทั้งหมด ${list.length.toLocaleString('th-TH')} รายการ`;
-    }
+function doSearch(){
+  const qn = norm($name.value);
+  const qf = norm($free.value);
 
-    /*** -------------------- ค้นหา -------------------- ***/
-    function doSearch(){
-      const qn = norm($name.value);
-      const qf = norm($free.value);
-      let list = ALL.filter(r=>{
-        const okName = qn ? fuzzyMatch(r.name, qn) : true;
-        const okFree = qf ? (r.event.toLowerCase().includes(qf.toLowerCase()) ||
-                             r.type.toLowerCase().includes(qf.toLowerCase())) : true;
-        return okName && okFree;
-      });
-      // แสดง/ซ่อนคอลัมน์ชื่อ: ถ้า "กรอกชื่อ" → ไม่ต้องแสดงชื่อในตาราง
-      const showName = !qn;
-      renderRows(list, {showName});
-    }
+  VIEW = ALL.filter(r=>{
+    const okName = qn ? fuzzyMatchName(r.name, qn) : true;
+    const okFree = qf ? freeFilter(r.event, r.type, qf) : true;
+    return okName && okFree;
+  });
 
-    /*** -------------------- ฟังค์ชัน UI -------------------- ***/
-    document.getElementById('btnSearch').addEventListener('click', doSearch);
-    document.getElementById('btnClear').addEventListener('click', ()=>{
-      $name.value = ''; $free.value = '';
-      sortState = {key:'year', dir:'desc'};
-      updateSortIndicators();
-      doSearch();
-    });
-    // Enter เพื่อค้นหาไวๆ
-    [$name,$free].forEach($el=>{
-      $el.addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); });
-    });
+  // แสดงชื่อที่ค้นไว้ด้านบน และซ่อนคอลัมน์ชื่อเมื่อมีชื่อ
+  $who.textContent = qn ? `ผลสำหรับ: “${qn}”` : '';
+  renderRows(VIEW, !!qn);
+}
 
-    // เริ่มทำงาน
-    bindSortHeaders();
-    updateSortIndicators();
-    loadCSV();
-  </script>
+/* ===================== การทำงานของ UI ===================== */
+$name.addEventListener('keydown', e => { if(e.key === 'Enter') doSearch(); });
+$free.addEventListener('keydown', e => { if(e.key === 'Enter') doSearch(); });
+$btnSearch.addEventListener('click', doSearch);
+$btnClear.addEventListener('click', ()=>{
+  $name.value = ''; $free.value = '';
+  $who.textContent = '';
+  doSearch();
+});
+
+// คลิกหัวคอลัมน์เพื่อเรียง
+$head.addEventListener('click', e=>{
+  const th = e.target.closest('th');
+  if(!th) return;
+  const key = th.dataset.key;
+  if(!key) return;
+  if(SORT.key === key){
+    SORT.dir = (SORT.dir === 'asc' ? 'desc' : 'asc');
+  }else{
+    SORT.key = key;
+    SORT.dir = (key === 'year') ? 'desc' : 'asc';
+  }
+  renderRows(VIEW, !!norm($name.value));
+});
+
+// เริ่มทำงาน
+loadData();
+</script>
 </body>
 </html>
