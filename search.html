@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="utf-8" />
-  <title>TTAT Result Online — ค้นหาข้อมูลนักกีฬา</title>
+  <title>TTAT Result Online — ค้นหาข้อมูลนักกีฬา (Fuzzy + Filter-first)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   <style>
@@ -34,6 +34,13 @@
     .warn{color:var(--warn); font-size:13px; margin-top:10px}
     .right{float:right; font-size:13px}
     .pill{display:inline-block; padding:6px 10px; border:1px solid var(--border); border-radius:999px; color:var(--muted)}
+    .chips{display:flex; gap:8px; flex-wrap:wrap; margin:6px 0 10px}
+    .chip{background:#0b2241; border:1px solid var(--border); padding:6px 10px; border-radius:999px; cursor:pointer}
+    .chip:hover{filter:brightness(1.05)}
+
+    /* คอลัมน์ชื่อจะ hidden โดยค่าเริ่มต้น (เฉพาะโหมดค้นหาด้วยชื่อ) */
+    .col-name{display:none}
+    .show-name .col-name{display:table-cell}
   </style>
 </head>
 <body>
@@ -44,10 +51,10 @@
 
     <div class="card">
       <div class="controls">
-        <input id="qName" type="text" placeholder="พิมพ์ชื่อ-สกุล (พิมพ์บางส่วนได้ เช่น ภาคภมูิ, ภาคภูมิ)">
+        <input id="qName" type="text" placeholder="พิมพ์ชื่อ-สกุล (พิมพ์บางส่วน/พิมพ์คลาดเคลื่อนได้ เช่น ภาคภมูิ)">
         <button id="btnSearch">ค้นหา</button>
         <button id="btnClear" class="secondary">ล้าง</button>
-        <input id="qFilter" type="text" placeholder="กรองคำใน ‘รายการ’ หรือ ‘ประเภท’ (ไม่บังคับ)" style="flex:1 1 260px">
+        <input id="qFilter" type="text" placeholder="กรองคำใน ‘รายการ’ หรือ ‘ประเภท’ (พิมพ์ ≥ 2 ตัวอักษรได้เลย)" style="flex:1 1 260px">
       </div>
 
       <div class="name" id="selName" hidden>
@@ -55,10 +62,14 @@
         <span class="right muted" id="countTxt"></span>
       </div>
 
+      <!-- ชื่อที่ใกล้เคียง (แนะนำ) -->
+      <div id="suggestWrap" class="chips" style="display:none"></div>
+
       <div class="tablewrap">
-        <table>
+        <table id="tbl">
           <thead>
             <tr>
+              <th class="col-name" id="thName">ชื่อ - สกุล</th>
               <th style="width:120px">ปี จัดแข่งขัน</th>
               <th>รายการ</th>
               <th style="width:280px">ประเภท</th>
@@ -66,7 +77,7 @@
             </tr>
           </thead>
           <tbody id="rows">
-            <tr><td colspan="4" class="muted">กำลังโหลดข้อมูล…</td></tr>
+            <tr><td colspan="5" class="muted">กำลังโหลดข้อมูล…</td></tr>
           </tbody>
         </table>
         <div id="warn" class="warn" hidden></div>
@@ -77,8 +88,6 @@
   <!-- PapaParse สำหรับอ่าน CSV -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script>
-    // 1) ใช้ไฟล์ CSV ในโฟลเดอร์เดียวกับ search.html
-    //    เวลาอัปเดต CSV ให้เปลี่ยนตัวเลขเวอร์ชันกัน cache เช่น 'data.csv?v=2'
     const CSV_URL = 'data.csv?v=1';
 
     const el = (id)=>document.getElementById(id);
@@ -87,20 +96,42 @@
     const $nameTxt = el('selNameTxt');
     const $countTxt = el('countTxt');
     const $warn = el('warn');
+    const $suggest = el('suggestWrap');
+    const $tbl = el('tbl');
+    const $thName = el('thName');
 
     let DATA = [];
     let LOADED = false;
 
-    // ปรับข้อความให้เปรียบเทียบได้
     const normalize = s => String(s||'')
       .replace(/\u00A0/g,' ')
       .replace(/\s+/g,' ')
       .trim()
       .toLowerCase();
 
-    const uniqueNames = list => [...new Set(list.map(r => r.name))];
+    // --- Levenshtein / similarity (สำหรับ fuzzy name) ---
+    function levenshtein(a,b){
+      a = normalize(a); b = normalize(b);
+      const m = a.length, n = b.length;
+      if(m===0) return n; if(n===0) return m;
+      const dp = Array.from({length:m+1}, (_,i)=>Array(n+1).fill(0));
+      for(let i=0;i<=m;i++) dp[i][0]=i;
+      for(let j=0;j<=n;j++) dp[0][j]=j;
+      for(let i=1;i<=m;i++){
+        for(let j=1;j<=n;j++){
+          const cost = a[i-1]===b[j-1] ? 0 : 1;
+          dp[i][j] = Math.min(dp[i-1][j] + 1, dp[i][j-1] + 1, dp[i-1][j-1] + cost);
+        }
+      }
+      return dp[m][n];
+    }
+    function allowedTypos(len){ if(len<=4) return 1; if(len<=8) return 2; return 3; }
+    function similarity(a,b){
+      const d = levenshtein(a,b);
+      const L = Math.max(normalize(a).length, normalize(b).length) || 1;
+      return 1 - d / L;
+    }
 
-    // 2) โหลด CSV
     async function loadCSV(){
       try{
         const res = await fetch(CSV_URL, {cache:'no-store'});
@@ -117,25 +148,32 @@
         })).filter(r => r.name);
 
         LOADED = true;
-        $rows.innerHTML = '<tr><td colspan="4" class="muted">กรุณาพิมพ์อย่างน้อย 2 ตัวอักษรของชื่อ-สกุล แล้วกดค้นหา</td></tr>';
+        $rows.innerHTML = '<tr><td colspan="5" class="muted">พิมพ์ชื่อ ≥ 2 ตัวอักษร หรือ กรองคำ ≥ 2 ตัวอักษร</td></tr>';
       }catch(err){
         console.error(err);
-        $rows.innerHTML = '<tr><td colspan="4">โหลดข้อมูลไม่สำเร็จ</td></tr>';
+        $rows.innerHTML = '<tr><td colspan="5">โหลดข้อมูลไม่สำเร็จ</td></tr>';
         $warn.hidden = false;
-        $warn.textContent = 'ตรวจสอบว่ามีไฟล์ data.csv ในโฟลเดอร์เดียวกับหน้านี้ และลองรีเฟรชใหม่';
+        $warn.textContent = 'ตรวจสอบว่าไฟล์ data.csv อยู่โฟลเดอร์เดียวกับหน้านี้ และลองรีเฟรชใหม่';
       }
     }
 
-    function renderRows(list){
+    function renderRows(list, {showName}){
+      // toggle คอลัมน์ชื่อ
+      if(showName){
+        $tbl.classList.add('show-name');
+      }else{
+        $tbl.classList.remove('show-name');
+      }
+
       if(!list.length){
-        $rows.innerHTML = '<tr><td colspan="4" class="muted">ไม่พบข้อมูล</td></tr>';
+        $rows.innerHTML = '<tr><td colspan="5" class="muted">ไม่พบข้อมูล</td></tr>';
         $countTxt.textContent = '';
         return;
       }
-      // เรียงปีมาก→น้อย (พยายามแปลงเป็นตัวเลขก่อน)
       list.sort((a,b)=> (Number(b.year)||0) - (Number(a.year)||0));
       const html = list.map(r=>`
         <tr>
+          <td class="col-name">${showName ? (r.name||'-') : ''}</td>
           <td>${r.year || '-'}</td>
           <td>${r.event || '-'}</td>
           <td>${r.type || '-'}</td>
@@ -146,7 +184,20 @@
       $countTxt.textContent = `ทั้งหมด ${list.length.toLocaleString('th-TH')} รายการ`;
     }
 
-    // 3) ค้นหาแบบ partial match
+    function showSuggestions(cands){
+      if(!cands.length){ $suggest.style.display='none'; $suggest.innerHTML=''; return; }
+      $suggest.style.display='flex';
+      $suggest.innerHTML = cands.slice(0,8).map(c =>
+        `<span class="chip" data-name="${c.name}">${c.name}</span>`
+      ).join('');
+      $suggest.querySelectorAll('.chip').forEach(chip=>{
+        chip.addEventListener('click', ()=>{
+          el('qName').value = chip.dataset.name;
+          doSearch();  // ค้นหาทันที
+        });
+      });
+    }
+
     function doSearch(){
       if(!LOADED) return;
 
@@ -154,61 +205,102 @@
       const qName = normalize(qNameRaw);
       const qFilter = normalize(el('qFilter').value);
 
-      if(qName.length < 2){
-        $nameBox.hidden = true;
-        $rows.innerHTML = '<tr><td colspan="4" class="muted">กรุณาพิมพ์อย่างน้อย 2 ตัวอักษรของชื่อ-สกุล แล้วกดค้นหา</td></tr>';
-        $countTxt.textContent = '';
+      // กรณี 1: ค้นหาด้วยชื่อ (>=2 ตัว)
+      if(qName.length >= 2){
+        $nameBox.hidden = false;
+
+        const namePool = [...new Set(DATA.map(x=>x.name))];
+        const typoLimit = allowedTypos(qName.length);
+
+        const scored = namePool.map(n => {
+          const nn = normalize(n);
+          const contains = nn.includes(qName) ? 1 : 0;
+          const dist = levenshtein(qName, nn);
+          const sim = similarity(qName, nn);
+          return { name:n, contains, dist, sim };
+        })
+        .filter(s => s.contains || s.dist <= typoLimit || s.sim >= 0.7)
+        .sort((a,b)=> (b.contains - a.contains) || (a.dist - b.dist) || (b.sim - a.sim));
+
+        if(scored.length===0){
+          $nameBox.hidden = true;
+          showSuggestions([]);
+          $rows.innerHTML = `<tr><td colspan="5" class="muted">ไม่พบชื่อที่ใกล้เคียง “${qNameRaw.trim()}”</td></tr>`;
+          $countTxt.textContent = '';
+          return;
+        }
+
+        const bestName = scored[0].name;
+        let matchedNames = scored.map(s=>s.name);
+        if(matchedNames.length > 12) matchedNames = matchedNames.slice(0,6);
+
+        let out = DATA.filter(r => matchedNames.includes(r.name));
+        if(qFilter){
+          out = out.filter(r =>
+            normalize(r.event).includes(qFilter) ||
+            normalize(r.type).includes(qFilter)
+          );
+        }
+
+        el('selNameTxt').textContent = bestName;
+        renderRows(out, {showName:false});
+
+        const uniqCount = new Set(matchedNames).size;
+        $countTxt.textContent += ` • ${uniqCount} ชื่อ`;
+
+        const suggestions = scored.filter(s => s.name !== bestName).slice(0,8).map(s => ({name:s.name}));
+        showSuggestions(suggestions);
         return;
       }
 
-      let out = DATA.filter(r => normalize(r.name).includes(qName));
+      // กรณี 2: ชื่อว่าง แต่กรองคำ >= 2 ตัว → แสดงผลแบบรวมหลายคน และโชว์คอลัมน์ชื่อ
+      if(qFilter.length >= 2){
+        $nameBox.hidden = true;
+        showSuggestions([]);
 
-      if(qFilter){
-        out = out.filter(r =>
+        const out = DATA.filter(r =>
           normalize(r.event).includes(qFilter) ||
           normalize(r.type).includes(qFilter)
         );
-      }
 
-      const names = uniqueNames(out);
-
-      if(out.length === 0){
-        $nameBox.hidden = true;
-        $rows.innerHTML = `<tr><td colspan="4" class="muted">ไม่พบข้อมูลที่ตรงกับ “${qNameRaw.trim()}”</td></tr>`;
-        $countTxt.textContent = '';
+        renderRows(out, {showName:true});
         return;
       }
 
-      $nameBox.hidden = false;
-      $nameTxt.textContent = (names.length === 1) ? names[0] : `คำค้น: ${qNameRaw.trim()}`;
-      renderRows(out);
-      // เติมจำนวนชื่อที่พบ (ถ้าอยากโชว์ด้วย)
-      $countTxt.textContent += ` • ${names.length} ชื่อ`;
+      // ไม่มีอะไรพอค้นหา
+      $nameBox.hidden = true;
+      showSuggestions([]);
+      $rows.innerHTML = '<tr><td colspan="5" class="muted">พิมพ์ชื่อ ≥ 2 ตัวอักษร หรือ กรองคำ ≥ 2 ตัวอักษร</td></tr>';
+      $countTxt.textContent = '';
     }
 
     function clearAll(){
       el('qName').value = '';
       el('qFilter').value = '';
       $nameBox.hidden = true;
-      $rows.innerHTML = '<tr><td colspan="4" class="muted">กรุณาพิมพ์อย่างน้อย 2 ตัวอักษรของชื่อ-สกุล แล้วกดค้นหา</td></tr>';
+      showSuggestions([]);
+      $rows.innerHTML = '<tr><td colspan="5" class="muted">พิมพ์ชื่อ ≥ 2 ตัวอักษร หรือ กรองคำ ≥ 2 ตัวอักษร</td></tr>';
       $countTxt.textContent = '';
       el('qName').focus();
     }
 
-    // 4) Events
+    // Events
     document.addEventListener('DOMContentLoaded', loadCSV);
     el('btnSearch').addEventListener('click', doSearch);
     el('btnClear').addEventListener('click', clearAll);
-
-    // ค้นหาอัตโนมัติเมื่อพิมพ์ชื่อครบ ≥ 2 ตัวอักษร
+    el('qName').addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); });
     el('qName').addEventListener('input', () => {
       if(el('qName').value.trim().length >= 2) doSearch();
+      else if(el('qFilter').value.trim().length >= 2) doSearch();
     });
-    // กด Enter ในช่องชื่อให้ค้นหา
-    el('qName').addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); });
-    // พิมพ์กรองเพิ่มในรายการ/ประเภทแบบเรียลไทม์ (ถ้ามีผลลัพธ์อยู่แล้ว)
+    // 🔹 พิมพ์ในช่องกรองคำ ≥ 2 ตัวอักษร จะแสดงผลทันที แม้ไม่ได้พิมพ์ชื่อ
     el('qFilter').addEventListener('input', () => {
-      if(!$nameBox.hidden) doSearch();
+      const v = el('qFilter').value.trim();
+      if(v.length >= 2 || el('qName').value.trim().length >= 2) doSearch();
+      else{
+        $rows.innerHTML = '<tr><td colspan="5" class="muted">พิมพ์ชื่อ ≥ 2 ตัวอักษร หรือ กรองคำ ≥ 2 ตัวอักษร</td></tr>';
+        $countTxt.textContent = '';
+      }
     });
   </script>
 </body>
