@@ -44,10 +44,10 @@
 
     <div class="card">
       <div class="controls">
-        <input id="qName" type="text" placeholder="พิมพ์ชื่อ-สกุล นักกีฬา เช่น ภาคภูมิ สงวนสิน" />
+        <input id="qName" type="text" placeholder="พิมพ์ชื่อ-สกุล (พิมพ์บางส่วนได้ เช่น ภาคภมูิ, ภาคภูมิ)">
         <button id="btnSearch">ค้นหา</button>
         <button id="btnClear" class="secondary">ล้าง</button>
-        <input id="qFilter" type="text" placeholder="กรองคำใน ‘รายการ’ หรือ ‘ประเภท’ (ไม่บังคับ)" style="flex:1 1 260px" />
+        <input id="qFilter" type="text" placeholder="กรองคำใน ‘รายการ’ หรือ ‘ประเภท’ (ไม่บังคับ)" style="flex:1 1 260px">
       </div>
 
       <div class="name" id="selName" hidden>
@@ -77,8 +77,9 @@
   <!-- PapaParse สำหรับอ่าน CSV -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script>
-    // ใช้ไฟล์ CSV ในโฟลเดอร์เดียวกับ search.html
-    const CSV_URL = 'data.csv';
+    // 1) ใช้ไฟล์ CSV ในโฟลเดอร์เดียวกับ search.html
+    //    เวลาอัปเดต CSV ให้เปลี่ยนตัวเลขเวอร์ชันกัน cache เช่น 'data.csv?v=2'
+    const CSV_URL = 'data.csv?v=1';
 
     const el = (id)=>document.getElementById(id);
     const $rows = el('rows');
@@ -87,37 +88,41 @@
     const $countTxt = el('countTxt');
     const $warn = el('warn');
 
-    let DATA = [];  // เก็บข้อมูลทั้งหมดหลังโหลด
+    let DATA = [];
     let LOADED = false;
 
-    // ปรับข้อความให้เปรียบเทียบได้: ตัดเว้นวรรคเกิน, ตัด non-breaking space, lower case
+    // ปรับข้อความให้เปรียบเทียบได้
     const normalize = s => String(s||'')
       .replace(/\u00A0/g,' ')
       .replace(/\s+/g,' ')
       .trim()
       .toLowerCase();
 
-    // โหลด CSV
+    const uniqueNames = list => [...new Set(list.map(r => r.name))];
+
+    // 2) โหลด CSV
     async function loadCSV(){
       try{
         const res = await fetch(CSV_URL, {cache:'no-store'});
         if(!res.ok) throw new Error('HTTP '+res.status);
         const text = await res.text();
         const parsed = Papa.parse(text, {header:true, skipEmptyLines:true});
+
         DATA = parsed.data.map(r => ({
           name: (r['ชื่อ - สกุล'] ?? '').trim(),
           year: (r['ปี จัดแข่งขัน'] ?? '').toString().trim(),
           event: (r['รายการ'] ?? '').trim(),
           type: (r['ประเภท'] ?? '').trim(),
           pos:  (r['ตำแหน่ง'] ?? '').trim()
-        }));
+        })).filter(r => r.name);
+
         LOADED = true;
-        $rows.innerHTML = '<tr><td colspan="4" class="muted">กรุณาพิมพ์ชื่อ-สกุล แล้วกดค้นหา</td></tr>';
+        $rows.innerHTML = '<tr><td colspan="4" class="muted">กรุณาพิมพ์อย่างน้อย 2 ตัวอักษรของชื่อ-สกุล แล้วกดค้นหา</td></tr>';
       }catch(err){
         console.error(err);
         $rows.innerHTML = '<tr><td colspan="4">โหลดข้อมูลไม่สำเร็จ</td></tr>';
         $warn.hidden = false;
-        $warn.textContent = 'หากใช้ GitHub Pages ให้แน่ใจว่าไฟล์ data.csv อยู่โฟลเดอร์เดียวกับหน้า และไม่มีการ cache เก่า';
+        $warn.textContent = 'ตรวจสอบว่ามีไฟล์ data.csv ในโฟลเดอร์เดียวกับหน้านี้ และลองรีเฟรชใหม่';
       }
     }
 
@@ -127,63 +132,82 @@
         $countTxt.textContent = '';
         return;
       }
-      // sort ปี (ตัวเลข) จากมาก→น้อย
-      list.sort((a,b)=>Number(b.year)-Number(a.year));
-
+      // เรียงปีมาก→น้อย (พยายามแปลงเป็นตัวเลขก่อน)
+      list.sort((a,b)=> (Number(b.year)||0) - (Number(a.year)||0));
       const html = list.map(r=>`
         <tr>
-          <td>${r.year||'-'}</td>
-          <td>${r.event||'-'}</td>
-          <td>${r.type||'-'}</td>
-          <td>${r.pos||'-'}</td>
+          <td>${r.year || '-'}</td>
+          <td>${r.event || '-'}</td>
+          <td>${r.type || '-'}</td>
+          <td>${r.pos  || '-'}</td>
         </tr>
       `).join('');
       $rows.innerHTML = html;
       $countTxt.textContent = `ทั้งหมด ${list.length.toLocaleString('th-TH')} รายการ`;
     }
 
+    // 3) ค้นหาแบบ partial match
     function doSearch(){
       if(!LOADED) return;
 
-      const qName = normalize(el('qName').value);
+      const qNameRaw = el('qName').value;
+      const qName = normalize(qNameRaw);
       const qFilter = normalize(el('qFilter').value);
 
-      if(!qName){
+      if(qName.length < 2){
         $nameBox.hidden = true;
-        $rows.innerHTML = '<tr><td colspan="4" class="muted">กรุณาพิมพ์ชื่อ-สกุล แล้วกดค้นหา</td></tr>';
+        $rows.innerHTML = '<tr><td colspan="4" class="muted">กรุณาพิมพ์อย่างน้อย 2 ตัวอักษรของชื่อ-สกุล แล้วกดค้นหา</td></tr>';
         $countTxt.textContent = '';
         return;
       }
 
-      // เทียบชื่อแบบเข้มงวด: ชื่อที่ normalize แล้วต้องตรงกัน (ไม่สนใจเคส/เว้นวรรคย้วย)
-      const out = DATA.filter(r => normalize(r.name) === qName)
-                     .filter(r => !qFilter
-                                  || normalize(r.event).includes(qFilter)
-                                  || normalize(r.type).includes(qFilter));
+      let out = DATA.filter(r => normalize(r.name).includes(qName));
 
-      // แสดงชื่อบนหัว
-      $nameTxt.textContent = DATA.find(r => normalize(r.name) === qName)?.name || el('qName').value.trim();
+      if(qFilter){
+        out = out.filter(r =>
+          normalize(r.event).includes(qFilter) ||
+          normalize(r.type).includes(qFilter)
+        );
+      }
+
+      const names = uniqueNames(out);
+
+      if(out.length === 0){
+        $nameBox.hidden = true;
+        $rows.innerHTML = `<tr><td colspan="4" class="muted">ไม่พบข้อมูลที่ตรงกับ “${qNameRaw.trim()}”</td></tr>`;
+        $countTxt.textContent = '';
+        return;
+      }
+
       $nameBox.hidden = false;
-
+      $nameTxt.textContent = (names.length === 1) ? names[0] : `คำค้น: ${qNameRaw.trim()}`;
       renderRows(out);
+      // เติมจำนวนชื่อที่พบ (ถ้าอยากโชว์ด้วย)
+      $countTxt.textContent += ` • ${names.length} ชื่อ`;
     }
 
     function clearAll(){
       el('qName').value = '';
       el('qFilter').value = '';
       $nameBox.hidden = true;
-      $rows.innerHTML = '<tr><td colspan="4" class="muted">กรุณาพิมพ์ชื่อ-สกุล แล้วกดค้นหา</td></tr>';
+      $rows.innerHTML = '<tr><td colspan="4" class="muted">กรุณาพิมพ์อย่างน้อย 2 ตัวอักษรของชื่อ-สกุล แล้วกดค้นหา</td></tr>';
       $countTxt.textContent = '';
       el('qName').focus();
     }
 
-    // events
+    // 4) Events
     document.addEventListener('DOMContentLoaded', loadCSV);
     el('btnSearch').addEventListener('click', doSearch);
     el('btnClear').addEventListener('click', clearAll);
+
+    // ค้นหาอัตโนมัติเมื่อพิมพ์ชื่อครบ ≥ 2 ตัวอักษร
+    el('qName').addEventListener('input', () => {
+      if(el('qName').value.trim().length >= 2) doSearch();
+    });
+    // กด Enter ในช่องชื่อให้ค้นหา
     el('qName').addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); });
+    // พิมพ์กรองเพิ่มในรายการ/ประเภทแบบเรียลไทม์ (ถ้ามีผลลัพธ์อยู่แล้ว)
     el('qFilter').addEventListener('input', () => {
-      // กรองใหม่แบบทันทีถ้ามีผลลัพธ์อยู่แล้ว
       if(!$nameBox.hidden) doSearch();
     });
   </script>
