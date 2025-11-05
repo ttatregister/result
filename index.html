@@ -1,55 +1,75 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>TTAT Result Online</title>
-  <meta name="viewport" content="width=1280">
+  <!-- ใช้ layout เดิมของคุณที่ล็อกความกว้าง 1280 -->
+  <meta name="viewport" content="width=1280" />
   <style>
-    html, body {
-      margin: 0; padding: 0;
-      min-width: 1280px;
+    html, body{
+      margin:0; padding:0;
+      min-width:1280px;
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      text-align: center;
+      background:#f4f4f4;
+      text-align:center;
     }
-    header {
-      background: #003366;
-      color: #fff;
-      padding: 20px;
-      font-size: 24px;
-      font-weight: bold;
+    header{
+      background:#003366;
+      color:#fff;
+      padding:20px;
+      font-size:24px;
+      font-weight:bold;
     }
-    .wrap { 
-      margin-top: 60px;
-      display: flex;
-      flex-direction: column;  /* เรียงแนวตั้ง */
-      align-items: center;
-      gap: 15px;               /* ระยะห่างระหว่างปุ่ม */
+    .wrap{
+      margin-top:60px;
+      display:flex;
+      flex-direction:column;     /* เรียงปุ่มแนวตั้ง */
+      align-items:center;
+      gap:15px;                  /* ระยะห่างระหว่างปุ่ม */
     }
-    .btn {
-      display: block;
-      background: #0066cc;
-      color: white;
-      padding: 15px 30px;
-      font-size: 18px;
-      border-radius: 8px;
-      text-decoration: none;
-      transition: background 0.3s;
-      width: 320px;            /* ขนาดปุ่มเท่ากัน */
-      text-align: center;
+    .btn{
+      display:block;
+      background:#0066cc;
+      color:#fff;
+      padding:15px 30px;
+      font-size:18px;
+      border-radius:8px;
+      text-decoration:none;
+      transition:background .3s;
+      width:320px;               /* ให้ปุ่มกว้างเท่ากัน */
+      text-align:center;
+      box-shadow:0 2px 6px rgba(0,0,0,.08);
     }
-    .btn:hover { background: #004d99; }
+    .btn:hover{ background:#004d99; }
+    .btn.secondary{
+      background:#0a7b34;       /* ปุ่มสีเขียวสำหรับ “ค้นหาข้อมูลนักกีฬา” */
+    }
+    .btn.secondary:hover{
+      background:#076428;
+    }
+    footer{
+      margin:60px 0 30px;
+      color:#666;
+      font-size:12px;
+    }
   </style>
 </head>
 <body>
   <header>TTAT Result Online</header>
 
   <div class="wrap">
+    <!-- ปุ่มไปหน้าเพจรอง ค้นหาข้อมูลนักกีฬา -->
+    <a class="btn secondary" href="search.html">ค้นหาข้อมูลนักกีฬา (Beta)</a>
+
+    <!-- ปุ่มรายการแข่งขันเดิมของคุณ -->
     <a class="btn" href="event-chiangrai-open-2025.html">CHIANG RAI OPEN 2025</a>
     <a class="btn" href="event-Thailand-Master-Hope-and-Kid-2025-C3.html">Thailand Master Hope and Kid 2025 C3</a>
     <a class="btn" href="event-butterfly-thonburi-open-2025.html">Butterfly Thonburi University Open 2025</a>
-    <!-- 🔹 ปุ่มใหม่ รายการที่ 4 -->
     <a class="btn" href="event-khon-kaen-all-thailand-2025-c3.html">Khon Kaen All Thailand 2025 Circuit 3</a>
   </div>
+
+  <footer>
+    © TTAT Result Online
+  </footer>
 </body>
 </html>
