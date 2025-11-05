@@ -2,306 +2,277 @@
 <html lang="th">
 <head>
   <meta charset="utf-8" />
-  <title>TTAT Result Online — ค้นหาข้อมูลนักกีฬา (Fuzzy + Filter-first)</title>
+  <title>TTAT Result Online — ค้นหาข้อมูลนักกีฬา</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- ใช้ฟอนต์ & โทนสี -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   <style>
     :root{
-      --bg:#0b2038; --panel:#0f2b4c; --muted:#9db0d1; --text:#e7f0ff; --accent:#2ea0ff;
-      --row:#122c50; --row2:#123259; --border:#1d4672; --warn:#ffcc66;
+      --bg:#0b253c;
+      --card:#0f2f4c;
+      --line:#163d5f;
+      --text:#e9f2ff;
+      --muted:#9db0d1;
+      --accent:#2aa0ff;
+      --good:#46c081;
+      --bad:#ff6666;
     }
-    *{box-sizing:border-box}  html,body{margin:0; font-family:Inter,system-ui,Arial}
-    body{background:var(--bg); color:var(--text)}
-    header{background:#062449; padding:18px 16px; font-size:20px; font-weight:700}
-    .container{max-width:1100px; margin:28px auto; padding:0 16px}
-    a.back{display:inline-block; color:var(--muted); text-decoration:none; margin-bottom:14px}
-    .card{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px}
-    .controls{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px}
-    input[type="text"]{background:#0b2241; color:var(--text); border:1px solid var(--border);
-      padding:12px 14px; border-radius:10px; min-width:260px}
-    button{background:#0f5130; border:1px solid #0f5130; color:#fff; padding:12px 18px;
-      border-radius:10px; cursor:pointer; font-weight:600}
-    button.secondary{background:#0b2241; border:1px solid var(--border)}
-    button:hover{filter:brightness(1.03)}
-    .muted{color:var(--muted); font-size:13px}
-    .name{margin:8px 2px 14px; color:#bfe1ff}
-
-    table{width:100%; border-collapse:collapse; font-size:14px; overflow:hidden; border-radius:10px}
-    thead th{background:#0a2a53; text-align:left; padding:11px 12px; border-bottom:1px solid var(--border)}
-    tbody td{padding:11px 12px; border-bottom:1px solid var(--border)}
-    tbody tr{background:var(--row)}
-    tbody tr:nth-child(even){background:var(--row2)}
-    .warn{color:var(--warn); font-size:13px; margin-top:10px}
-    .right{float:right; font-size:13px}
-    .pill{display:inline-block; padding:6px 10px; border:1px solid var(--border); border-radius:999px; color:var(--muted)}
-    .chips{display:flex; gap:8px; flex-wrap:wrap; margin:6px 0 10px}
-    .chip{background:#0b2241; border:1px solid var(--border); padding:6px 10px; border-radius:999px; cursor:pointer}
-    .chip:hover{filter:brightness(1.05)}
-
-    /* คอลัมน์ชื่อจะ hidden โดยค่าเริ่มต้น (เฉพาะโหมดค้นหาด้วยชื่อ) */
-    .col-name{display:none}
-    .show-name .col-name{display:table-cell}
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Arial}
+    a{color:#bfe1ff;text-decoration:none}
+    header{background:#07213a;padding:18px 16px;border-bottom:1px solid var(--line)}
+    header .wrap{max-width:1200px;margin:0 auto;display:flex;gap:16px;align-items:center}
+    header h1{margin:0;font-size:20px;font-weight:700}
+    header .back{color:var(--muted)}
+    main{max-width:1200px;margin:0 auto;padding:18px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+    .controls{display:flex;flex-wrap:wrap;gap:12px 10px;margin-bottom:14px}
+    input[type="text"]{
+      min-width:320px;
+      background:#0a2a45;border:1px solid var(--line);color:var(--text);
+      padding:12px 14px;border-radius:10px;font-size:15px;outline:none
+    }
+    input::placeholder{color:var(--muted)}
+    button{
+      background:#0f5130;border:1px solid #137a4a;color:#fff;
+      padding:10px 16px;border-radius:10px;cursor:pointer;font-weight:700
+    }
+    button.secondary{background:#0a2a45;border-color:#214b72}
+    .muted{color:var(--muted)}
+    .count{margin:10px 0 2px 0;font-size:13px;color:var(--muted)}
+    table{width:100%;border-collapse:collapse;margin-top:6px}
+    th,td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+    thead th{background:#0e3354;font-weight:700;text-align:left}
+    tbody tr:hover{background:#0c2946}
+    /* คอลัมน์ชื่อซ่อนเมื่อค้นหาด้วยชื่อ */
+    .hide-name .col-name{display:none}
+    /* Sorting indicator */
+    th.sortable{cursor:pointer;user-select:none}
+    th.sortable .sort-ind{margin-left:6px;color:var(--muted);font-size:12px}
+    /* แถบแจ้ง */
+    .note{margin-top:10px;font-size:13px;color:var(--muted)}
+    .pill{display:inline-block;border:1px solid var(--line);padding:2px 8px;border-radius:999px;color:var(--muted);font-size:12px}
   </style>
+  <!-- CSV Parser เพื่อความแม่นยำ (รองรับช่องที่มี , และ ") -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.5.2/papaparse.min.js"></script>
 </head>
 <body>
-  <header>TTAT Result Online — ค้นหาข้อมูลนักกีฬา</header>
+  <header>
+    <div class="wrap">
+      <a class="back" href="./"><span aria-hidden="true">←</span> กลับหน้าหลัก</a>
+      <h1>TTAT Result Online — ค้นหาข้อมูลนักกีฬา</h1>
+    </div>
+  </header>
 
-  <div class="container">
-    <a class="back" href="./index.html">← กลับหน้าหลัก</a>
-
+  <main>
     <div class="card">
       <div class="controls">
-        <input id="qName" type="text" placeholder="พิมพ์ชื่อ-สกุล (พิมพ์บางส่วน/พิมพ์คลาดเคลื่อนได้ เช่น ภาคภมูิ)">
+        <input id="qName" type="text" placeholder="พิมพ์ชื่อ-สกุล (พิมพ์บางส่วนได้ เช่น ภาคภูมิ)"/>
         <button id="btnSearch">ค้นหา</button>
         <button id="btnClear" class="secondary">ล้าง</button>
-        <input id="qFilter" type="text" placeholder="กรองคำใน ‘รายการ’ หรือ ‘ประเภท’ (พิมพ์ ≥ 2 ตัวอักษรได้เลย)" style="flex:1 1 260px">
+        <input id="qFree" type="text" placeholder="กรองคำใน ‘รายการ’ หรือ ‘ประเภท’ (ไม่บังคับ)"/>
       </div>
 
-      <div class="name" id="selName" hidden>
-        นักกีฬา: <span class="pill" id="selNameTxt"></span>
-        <span class="right muted" id="countTxt"></span>
-      </div>
+      <div id="count" class="count"></div>
 
-      <!-- ชื่อที่ใกล้เคียง (แนะนำ) -->
-      <div id="suggestWrap" class="chips" style="display:none"></div>
-
-      <div class="tablewrap">
+      <div class="table-wrap">
         <table id="tbl">
           <thead>
             <tr>
-              <th class="col-name" id="thName">ชื่อ - สกุล</th>
-              <th style="width:120px">ปี จัดแข่งขัน</th>
-              <th>รายการ</th>
-              <th style="width:280px">ประเภท</th>
-              <th style="width:160px">ตำแหน่ง</th>
+              <th class="col-name sortable" data-key="name">ชื่อ - สกุล <span class="sort-ind"></span></th>
+              <th class="sortable" data-key="year" style="width:120px">ปี จัดแข่งขัน <span class="sort-ind"></span></th>
+              <th class="sortable" data-key="event">รายการ <span class="sort-ind"></span></th>
+              <th class="sortable" data-key="type" style="width:320px">ประเภท <span class="sort-ind"></span></th>
+              <th class="sortable" data-key="pos" style="width:160px">ตำแหน่ง <span class="sort-ind"></span></th>
             </tr>
           </thead>
           <tbody id="rows">
             <tr><td colspan="5" class="muted">กำลังโหลดข้อมูล…</td></tr>
           </tbody>
         </table>
-        <div id="warn" class="warn" hidden></div>
+      </div>
+
+      <div class="note">
+        <span class="pill">วิธีใช้</span>
+        พิมพ์ชื่อบางส่วน (เช่น “ภาคภ” หรือ “อรวรรณ”) ได้เลย — ระบบจะค้นแบบยืดหยุ่น เผลอพิมพ์ผิดเล็กน้อยก็ยังหาเจอ
       </div>
     </div>
-  </div>
+  </main>
 
-  <!-- PapaParse สำหรับอ่าน CSV -->
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script>
-    const CSV_URL = 'data.csv?v=1';
+    /*** -------------------- การตั้งค่า -------------------- ***/
+    // ชี้ไปที่ไฟล์ CSV ใน repo เดียวกัน (อย่าลืมวาง data.csv ไว้ที่ result/data.csv)
+    const CSV_URL = 'data.csv';
 
-    const el = (id)=>document.getElementById(id);
-    const $rows = el('rows');
-    const $nameBox = el('selName');
-    const $nameTxt = el('selNameTxt');
-    const $countTxt = el('countTxt');
-    const $warn = el('warn');
-    const $suggest = el('suggestWrap');
-    const $tbl = el('tbl');
-    const $thName = el('thName');
+    /*** -------------------- สถานะ/ตัวแปร -------------------- ***/
+    let ALL = [];             // เก็บข้อมูลทั้งหมด
+    let VIEW = [];            // ผลหลังกรองเพื่อแสดง
+    let sortState = { key: 'year', dir: 'desc' }; // เริ่มเรียงปีมาก→น้อย
 
-    let DATA = [];
-    let LOADED = false;
+    // DOM refs
+    const $name = document.getElementById('qName');
+    const $free = document.getElementById('qFree');
+    const $rows = document.getElementById('rows');
+    const $tbl  = document.getElementById('tbl');
+    const $count = document.getElementById('count');
 
-    const normalize = s => String(s||'')
-      .replace(/\u00A0/g,' ')
+    /*** -------------------- Utils: ทำความสะอาดข้อความ -------------------- ***/
+    const norm = s => (s ?? '')
+      .toString()
+      .normalize('NFC')
+      .replace(/\u00A0/g, ' ') // nbsp → space
       .replace(/\s+/g,' ')
-      .trim()
-      .toLowerCase();
+      .trim();
 
-    // --- Levenshtein / similarity (สำหรับ fuzzy name) ---
-    function levenshtein(a,b){
-      a = normalize(a); b = normalize(b);
+    /*** -------------------- Levenshtein Distance (fuzzy) -------------------- ***/
+    function lev(a,b){
+      a = norm(a).toLowerCase();
+      b = norm(b).toLowerCase();
+      if(a === b) return 0;
       const m = a.length, n = b.length;
-      if(m===0) return n; if(n===0) return m;
-      const dp = Array.from({length:m+1}, (_,i)=>Array(n+1).fill(0));
-      for(let i=0;i<=m;i++) dp[i][0]=i;
-      for(let j=0;j<=n;j++) dp[0][j]=j;
+      if(!m) return n; if(!n) return m;
+      const d = Array.from({length:m+1}, (_,i)=>[i].concat(Array(n).fill(0)));
+      for(let j=0;j<=n;j++) d[0][j]=j;
       for(let i=1;i<=m;i++){
         for(let j=1;j<=n;j++){
           const cost = a[i-1]===b[j-1] ? 0 : 1;
-          dp[i][j] = Math.min(dp[i-1][j] + 1, dp[i][j-1] + 1, dp[i-1][j-1] + cost);
+          d[i][j] = Math.min(
+            d[i-1][j] + 1,      // deletion
+            d[i][j-1] + 1,      // insertion
+            d[i-1][j-1] + cost  // substitution
+          );
         }
       }
-      return dp[m][n];
-    }
-    function allowedTypos(len){ if(len<=4) return 1; if(len<=8) return 2; return 3; }
-    function similarity(a,b){
-      const d = levenshtein(a,b);
-      const L = Math.max(normalize(a).length, normalize(b).length) || 1;
-      return 1 - d / L;
+      return d[m][n];
     }
 
+    // fuzzyMatch: match ถ้าเป็นส่วนหนึ่ง หรือสะกดคลาดเคลื่อนเล็กน้อย
+    function fuzzyMatch(haystack, needle){
+      haystack = norm(haystack).toLowerCase();
+      needle   = norm(needle).toLowerCase();
+      if(!needle) return true;
+      if(haystack.includes(needle)) return true;
+
+      const dist = lev(haystack, needle);
+      // ยืดหยุ่น: ยิ่งคำยาว ยิ่งยอมคลาดเคลื่อนได้มากขึ้นเล็กน้อย
+      const allow = Math.max(1, Math.floor(needle.length/6)); // ยอม 1–2 ตัวโดยมาก
+      return dist <= allow;
+    }
+
+    /*** -------------------- โหลด CSV -------------------- ***/
     async function loadCSV(){
       try{
         const res = await fetch(CSV_URL, {cache:'no-store'});
-        if(!res.ok) throw new Error('HTTP '+res.status);
         const text = await res.text();
         const parsed = Papa.parse(text, {header:true, skipEmptyLines:true});
-
-        DATA = parsed.data.map(r => ({
-          name: (r['ชื่อ - สกุล'] ?? '').trim(),
-          year: (r['ปี จัดแข่งขัน'] ?? '').toString().trim(),
-          event: (r['รายการ'] ?? '').trim(),
-          type: (r['ประเภท'] ?? '').trim(),
-          pos:  (r['ตำแหน่ง'] ?? '').trim()
-        })).filter(r => r.name);
-
-        LOADED = true;
-        $rows.innerHTML = '<tr><td colspan="5" class="muted">พิมพ์ชื่อ ≥ 2 ตัวอักษร หรือ กรองคำ ≥ 2 ตัวอักษร</td></tr>';
-      }catch(err){
-        console.error(err);
-        $rows.innerHTML = '<tr><td colspan="5">โหลดข้อมูลไม่สำเร็จ</td></tr>';
-        $warn.hidden = false;
-        $warn.textContent = 'ตรวจสอบว่าไฟล์ data.csv อยู่โฟลเดอร์เดียวกับหน้านี้ และลองรีเฟรชใหม่';
+        // map ฟิลด์
+        ALL = parsed.data.map(r => ({
+          name : norm(r['ชื่อ - สกุล'] ?? r['ชื่อ-สกุล'] ?? r['name'] ?? ''),
+          year : Number(r['ปี จัดแข่งขัน'] ?? r['ปีจัดแข่งขัน'] ?? r['year'] ?? 0) || 0,
+          event: norm(r['รายการ'] ?? r['event'] ?? ''),
+          type : norm(r['ประเภท'] ?? r['type'] ?? ''),
+          pos  : norm(r['ตำแหน่ง'] ?? r['position'] ?? ''),
+        }));
+        doSearch();
+      }catch(e){
+        console.error(e);
+        $rows.innerHTML = `<tr><td colspan="5" class="muted">โหลดไฟล์ไม่ได้: ${e.message}</td></tr>`;
       }
     }
 
-    function renderRows(list, {showName}){
-      // toggle คอลัมน์ชื่อ
-      if(showName){
-        $tbl.classList.add('show-name');
-      }else{
-        $tbl.classList.remove('show-name');
-      }
-
-      if(!list.length){
-        $rows.innerHTML = '<tr><td colspan="5" class="muted">ไม่พบข้อมูล</td></tr>';
-        $countTxt.textContent = '';
-        return;
-      }
-      list.sort((a,b)=> (Number(b.year)||0) - (Number(a.year)||0));
-      const html = list.map(r=>`
-        <tr>
-          <td class="col-name">${showName ? (r.name||'-') : ''}</td>
-          <td>${r.year || '-'}</td>
-          <td>${r.event || '-'}</td>
-          <td>${r.type || '-'}</td>
-          <td>${r.pos  || '-'}</td>
-        </tr>
-      `).join('');
-      $rows.innerHTML = html;
-      $countTxt.textContent = `ทั้งหมด ${list.length.toLocaleString('th-TH')} รายการ`;
+    /*** -------------------- จัดเรียง -------------------- ***/
+    function applySort(list){
+      const {key, dir} = sortState;
+      const factor = dir === 'asc' ? 1 : -1;
+      return list.slice().sort((a,b)=>{
+        let va = a[key] ?? '';
+        let vb = b[key] ?? '';
+        if(key === 'year'){
+          va = Number(va)||0; vb = Number(vb)||0;
+          return (va - vb) * factor;
+        }
+        // ข้อความ (ไทย)
+        return String(va).localeCompare(String(vb), 'th', {sensitivity:'base'}) * factor;
+      });
     }
-
-    function showSuggestions(cands){
-      if(!cands.length){ $suggest.style.display='none'; $suggest.innerHTML=''; return; }
-      $suggest.style.display='flex';
-      $suggest.innerHTML = cands.slice(0,8).map(c =>
-        `<span class="chip" data-name="${c.name}">${c.name}</span>`
-      ).join('');
-      $suggest.querySelectorAll('.chip').forEach(chip=>{
-        chip.addEventListener('click', ()=>{
-          el('qName').value = chip.dataset.name;
-          doSearch();  // ค้นหาทันที
+    function updateSortIndicators(){
+      document.querySelectorAll('th.sortable .sort-ind').forEach(el=>el.textContent='');
+      const th = document.querySelector(`th.sortable[data-key="${sortState.key}"] .sort-ind`);
+      if(th) th.textContent = (sortState.dir==='asc') ? '▲' : '▼';
+    }
+    function bindSortHeaders(){
+      document.querySelectorAll('th.sortable').forEach(th=>{
+        th.addEventListener('click', ()=>{
+          const key = th.dataset.key;
+          if(sortState.key === key){
+            sortState.dir = (sortState.dir==='asc') ? 'desc' : 'asc';
+          }else{
+            sortState.key = key;
+            sortState.dir = (key==='year') ? 'desc' : 'asc';
+          }
+          doSearch();          // render ใหม่ตาม sort ล่าสุด
+          updateSortIndicators();
         });
       });
     }
 
+    /*** -------------------- เรนเดอร์ผลลัพธ์ -------------------- ***/
+    function renderRows(list, {showName}){
+      if(showName) $tbl.classList.remove('hide-name');
+      else         $tbl.classList.add('hide-name');
+
+      if(!list.length){
+        $rows.innerHTML = `<tr><td colspan="5" class="muted">ไม่พบข้อมูล</td></tr>`;
+        $count.textContent = '';
+        return;
+      }
+
+      list = applySort(list);
+      const html = list.map(r => `
+        <tr>
+          <td class="col-name">${showName ? (r.name||'-') : ''}</td>
+          <td>${r.year||'-'}</td>
+          <td>${r.event||'-'}</td>
+          <td>${r.type||'-'}</td>
+          <td>${r.pos||'-'}</td>
+        </tr>
+      `).join('');
+      $rows.innerHTML = html;
+      $count.textContent = `ทั้งหมด ${list.length.toLocaleString('th-TH')} รายการ`;
+    }
+
+    /*** -------------------- ค้นหา -------------------- ***/
     function doSearch(){
-      if(!LOADED) return;
-
-      const qNameRaw = el('qName').value;
-      const qName = normalize(qNameRaw);
-      const qFilter = normalize(el('qFilter').value);
-
-      // กรณี 1: ค้นหาด้วยชื่อ (>=2 ตัว)
-      if(qName.length >= 2){
-        $nameBox.hidden = false;
-
-        const namePool = [...new Set(DATA.map(x=>x.name))];
-        const typoLimit = allowedTypos(qName.length);
-
-        const scored = namePool.map(n => {
-          const nn = normalize(n);
-          const contains = nn.includes(qName) ? 1 : 0;
-          const dist = levenshtein(qName, nn);
-          const sim = similarity(qName, nn);
-          return { name:n, contains, dist, sim };
-        })
-        .filter(s => s.contains || s.dist <= typoLimit || s.sim >= 0.7)
-        .sort((a,b)=> (b.contains - a.contains) || (a.dist - b.dist) || (b.sim - a.sim));
-
-        if(scored.length===0){
-          $nameBox.hidden = true;
-          showSuggestions([]);
-          $rows.innerHTML = `<tr><td colspan="5" class="muted">ไม่พบชื่อที่ใกล้เคียง “${qNameRaw.trim()}”</td></tr>`;
-          $countTxt.textContent = '';
-          return;
-        }
-
-        const bestName = scored[0].name;
-        let matchedNames = scored.map(s=>s.name);
-        if(matchedNames.length > 12) matchedNames = matchedNames.slice(0,6);
-
-        let out = DATA.filter(r => matchedNames.includes(r.name));
-        if(qFilter){
-          out = out.filter(r =>
-            normalize(r.event).includes(qFilter) ||
-            normalize(r.type).includes(qFilter)
-          );
-        }
-
-        el('selNameTxt').textContent = bestName;
-        renderRows(out, {showName:false});
-
-        const uniqCount = new Set(matchedNames).size;
-        $countTxt.textContent += ` • ${uniqCount} ชื่อ`;
-
-        const suggestions = scored.filter(s => s.name !== bestName).slice(0,8).map(s => ({name:s.name}));
-        showSuggestions(suggestions);
-        return;
-      }
-
-      // กรณี 2: ชื่อว่าง แต่กรองคำ >= 2 ตัว → แสดงผลแบบรวมหลายคน และโชว์คอลัมน์ชื่อ
-      if(qFilter.length >= 2){
-        $nameBox.hidden = true;
-        showSuggestions([]);
-
-        const out = DATA.filter(r =>
-          normalize(r.event).includes(qFilter) ||
-          normalize(r.type).includes(qFilter)
-        );
-
-        renderRows(out, {showName:true});
-        return;
-      }
-
-      // ไม่มีอะไรพอค้นหา
-      $nameBox.hidden = true;
-      showSuggestions([]);
-      $rows.innerHTML = '<tr><td colspan="5" class="muted">พิมพ์ชื่อ ≥ 2 ตัวอักษร หรือ กรองคำ ≥ 2 ตัวอักษร</td></tr>';
-      $countTxt.textContent = '';
+      const qn = norm($name.value);
+      const qf = norm($free.value);
+      let list = ALL.filter(r=>{
+        const okName = qn ? fuzzyMatch(r.name, qn) : true;
+        const okFree = qf ? (r.event.toLowerCase().includes(qf.toLowerCase()) ||
+                             r.type.toLowerCase().includes(qf.toLowerCase())) : true;
+        return okName && okFree;
+      });
+      // แสดง/ซ่อนคอลัมน์ชื่อ: ถ้า "กรอกชื่อ" → ไม่ต้องแสดงชื่อในตาราง
+      const showName = !qn;
+      renderRows(list, {showName});
     }
 
-    function clearAll(){
-      el('qName').value = '';
-      el('qFilter').value = '';
-      $nameBox.hidden = true;
-      showSuggestions([]);
-      $rows.innerHTML = '<tr><td colspan="5" class="muted">พิมพ์ชื่อ ≥ 2 ตัวอักษร หรือ กรองคำ ≥ 2 ตัวอักษร</td></tr>';
-      $countTxt.textContent = '';
-      el('qName').focus();
-    }
+    /*** -------------------- ฟังค์ชัน UI -------------------- ***/
+    document.getElementById('btnSearch').addEventListener('click', doSearch);
+    document.getElementById('btnClear').addEventListener('click', ()=>{
+      $name.value = ''; $free.value = '';
+      sortState = {key:'year', dir:'desc'};
+      updateSortIndicators();
+      doSearch();
+    });
+    // Enter เพื่อค้นหาไวๆ
+    [$name,$free].forEach($el=>{
+      $el.addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); });
+    });
 
-    // Events
-    document.addEventListener('DOMContentLoaded', loadCSV);
-    el('btnSearch').addEventListener('click', doSearch);
-    el('btnClear').addEventListener('click', clearAll);
-    el('qName').addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); });
-    el('qName').addEventListener('input', () => {
-      if(el('qName').value.trim().length >= 2) doSearch();
-      else if(el('qFilter').value.trim().length >= 2) doSearch();
-    });
-    // 🔹 พิมพ์ในช่องกรองคำ ≥ 2 ตัวอักษร จะแสดงผลทันที แม้ไม่ได้พิมพ์ชื่อ
-    el('qFilter').addEventListener('input', () => {
-      const v = el('qFilter').value.trim();
-      if(v.length >= 2 || el('qName').value.trim().length >= 2) doSearch();
-      else{
-        $rows.innerHTML = '<tr><td colspan="5" class="muted">พิมพ์ชื่อ ≥ 2 ตัวอักษร หรือ กรองคำ ≥ 2 ตัวอักษร</td></tr>';
-        $countTxt.textContent = '';
-      }
-    });
+    // เริ่มทำงาน
+    bindSortHeaders();
+    updateSortIndicators();
+    loadCSV();
   </script>
 </body>
 </html>
