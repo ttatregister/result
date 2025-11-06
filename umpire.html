@@ -23,63 +23,158 @@
       --success:#7bd389;
     }
     *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Kanit',system-ui,Arial}
-    .container{max-width:1200px;margin-inline:auto;padding:20px}
-    .topbar{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-    .title{font-size:28px;font-weight:600;letter-spacing:.3px}
-    .muted{color:var(--muted);font-size:14px}
-    .filters{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin:12px 0;display:grid;gap:10px;grid-template-columns:1fr 180px 180px 180px 180px}
-    .filters input,.filters select{
-      width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);color:var(--text);font-size:14px;outline:none
+    html,body{
+      margin:0;
+      padding:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:'Kanit',system-ui,Arial;
     }
-    .pill{display:inline-flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:13px;margin-right:6px}
-    .btn{
-      background:var(--accent);border:none;color:white;border-radius:8px;padding:10px 14px;font-size:14px;cursor:pointer
+    a{color:var(--accent);text-decoration:none}
+    .container{
+      max-width:1200px;
+      margin-inline:auto;
+      padding:20px 20px 32px;
     }
-    .btn:hover{background:var(--accent-2)}
-    table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+    .topbar{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:flex-end;
+      gap:10px;
+      margin-bottom:8px;
+    }
+    .title{
+      font-size:26px;
+      font-weight:600;
+      letter-spacing:.2px;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:5px 11px;
+      border-radius:999px;
+      background:var(--panel);
+      border:1px solid var(--line);
+      font-size:12px;
+      color:var(--muted);
+    }
+    .muted{color:var(--muted);font-size:13px}
+    .filters{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:12px;
+      margin:14px 0 10px;
+      display:grid;
+      gap:8px;
+      grid-template-columns: minmax(180px,2.2fr) repeat(4, minmax(110px,1fr));
+    }
+    .filters input,
+    .filters select{
+      width:100%;
+      padding:9px 11px;
+      border-radius:8px;
+      border:1px solid var(--line);
+      background:var(--panel-2);
+      color:var(--text);
+      font-size:13px;
+      outline:none;
+    }
+    .filters input::placeholder{color:var(--muted)}
+    .filters select option{background:#082035;color:var(--text);}
+    .count{
+      margin:4px 2px 12px;
+      font-size:13px;
+      color:var(--muted);
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:12px;
+      overflow:hidden;
+    }
     thead th{
       background:#0c3d63;
       color:var(--text);
       font-weight:600;
-      padding:12px;
-      font-size:14px;
+      padding:10px 10px;
+      font-size:13px;
       border-bottom:1px solid var(--line);
       user-select:none;
       position:relative;
       cursor:pointer;
+      text-align:left;
     }
     thead th .sort{
-      font-size:11px;color:var(--muted);
-      position:absolute;right:10px;top:50%;transform:translateY(-50%);
+      font-size:10px;
+      color:var(--muted);
+      position:absolute;
+      right:8px;
+      top:50%;
+      transform:translateY(-50%);
     }
-    tbody td{padding:12px;border-bottom:1px solid var(--line);font-size:14px}
-    tbody tr:hover{background:rgba(255,255,255,.04)}
-    .tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid var(--line);color:var(--text);background:var(--panel-2)}
-    .tag.green{border-color:#2b7f57;background:#1d583d;color:#d5ffe7}
-    .tag.yellow{border-color:#8a6d1f;background:#5a4714;color:#fff0bf}
-    .count{margin:8px 2px 14px;font-size:14px;color:var(--muted)}
-    .footer{margin:28px 0 16px;color:var(--muted);font-size:13px;text-align:right}
-    @media (max-width:1100px){
-      .filters{grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+    tbody td{
+      padding:9px 10px;
+      border-bottom:1px solid var(--line);
+      font-size:13px;
     }
-    @media (max-width:820px){
-      .filters{grid-template-columns:1fr 1fr;gap:8px}
+    tbody tr:hover{
+      background:rgba(255,255,255,.04);
+    }
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      padding:2px 8px;
+      border-radius:999px;
+      font-size:11px;
+      border:1px solid var(--line);
+      color:var(--text);
+      background:var(--panel-2);
+    }
+    .tag.green{
+      border-color:#2b7f57;
+      background:#1d583d;
+      color:#d5ffe7;
+    }
+    .tag.yellow{
+      border-color:#8a6d1f;
+      background:#5a4714;
+      color:#fff0bf;
+    }
+    .footer{
+      margin-top:20px;
+      font-size:12px;
+      color:var(--muted);
+      text-align:right;
+    }
+    @media (max-width:1000px){
+      .filters{
+        grid-template-columns:1.7fr 1fr 1fr;
+      }
+    }
+    @media (max-width:720px){
+      .filters{
+        grid-template-columns:1fr 1fr;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
+    <!-- Header -->
     <div class="topbar">
       <div class="title">รายชื่อผู้ตัดสินสมาคม • TTAT Umpire Directory</div>
-      <div class="pill">ค้นหา/กรองได้</div>
-      <div class="pill">TH/EN</div>
+      <div class="pill">ค้นหาชื่อ / กรองตามระดับ / สถานะ / ประเทศ</div>
+      <div class="pill">ข้อมูลอัปเดตจาก Umpire_Status_Updates.csv</div>
       <div class="muted" id="last-updated"></div>
     </div>
 
-    <!-- แถวตัวกรอง -->
+    <!-- Filters -->
     <div class="filters">
-      <input id="q" type="text" placeholder="ค้นหาชื่อ (พิมพ์บางส่วนได้)..." />
+      <input id="q" type="text" placeholder="ค้นหาชื่อ (พิมพ์บางส่วนได้ เช่น CHAI, สมชาย)..." />
       <select id="role">
         <option value="">บทบาท: ทั้งหมด</option>
         <option value="Umpire">Umpire</option>
@@ -100,6 +195,7 @@
 
     <div class="count" id="count">กำลังโหลดข้อมูล…</div>
 
+    <!-- Table -->
     <table id="tbl">
       <thead>
         <tr>
@@ -114,22 +210,26 @@
       <tbody></tbody>
     </table>
 
-    <div class="footer">© TTAT • Auto-generated directory</div>
+    <div class="footer">
+      © TTAT • แสดงผลจากข้อมูล CSV บน GitHub Pages
+    </div>
   </div>
 
   <script>
-    // ========= ตั้งค่าแหล่งข้อมูล =========
+    // ================= CONFIG =================
+    // CSV ต้องอยู่ที่ https://ttatregister.github.io/result/Umpire_Status_Updates.csv
     const CSV_URL = 'https://ttatregister.github.io/result/Umpire_Status_Updates.csv';
 
-    // แมปชื่อคอลัมน์จาก CSV -> ชื่อที่เว็บใช้
+    // แมปชื่อคอลัมน์จาก CSV -> ฟิลด์ที่ใช้ในเว็บ
+    // จากไฟล์ตัวอย่างของคุณ:
+    // 'IU Number','Status','Umpire Level','Full Name','Gender','Nationality',...
     const MAPPING = {
       name:   'Full Name',
       country:'Nationality',
       level:  'Umpire Level',
       status: 'Status',
-      // ไม่มีใน CSV จึงเติมอัตโนมัติ
-      role:   null,
-      remark: null
+      role:   null, // ไม่มี -> ใส่ "Umpire"
+      remark: null // ไม่มี -> ว่าง
     };
 
     const state = {
@@ -139,8 +239,9 @@
       sortDir: 'asc'
     };
 
-    const $ = (s, p=document) => p.querySelector(s);
+    const $  = (s, p=document) => p.querySelector(s);
     const $$ = (s, p=document) => [...p.querySelectorAll(s)];
+
     const dom = {
       q: $('#q'),
       role: $('#role'),
@@ -152,48 +253,47 @@
       updated: $('#last-updated')
     };
 
-    // ========= โหลดข้อมูลจาก CSV =========
-    async function loadCSV(){
+    // ================= LOAD CSV =================
+    function loadCSV(){
       return new Promise((resolve, reject)=>{
         Papa.parse(CSV_URL, {
           download: true,
           header: true,
           skipEmptyLines: true,
-          complete: (res)=> resolve(res.data),
-          error: reject
+          complete: res => resolve(res.data),
+          error: err => reject(err)
         });
       });
     }
 
-    // ทำความสะอาดข้อมูล และแมปฟิลด์
     function normalize(rows){
-      return rows.map(r=>{
+      return rows.map(r => {
         const row = {
-          name: (r[MAPPING.name] ?? '').trim(),
-          country: (r[MAPPING.country] ?? '').trim(),
-          level: (r[MAPPING.level] ?? '').trim(),
-          status: (r[MAPPING.status] ?? '').trim(),
-          role: 'Umpire',
-          remark: ''
+          name   : (r[MAPPING.name]    || '').trim(),
+          country: (r[MAPPING.country] || '').trim(),
+          level  : (r[MAPPING.level]   || '').trim(),
+          status : (r[MAPPING.status]  || '').trim(),
+          role   : 'Umpire',
+          remark : ''
         };
         return row;
-      }).filter(r => r.name); // เอาเฉพาะแถวที่มีชื่อจริง
+      }).filter(r => r.name); // เอาเฉพาะแถวที่มีชื่อ
     }
 
-    // เติมรายการตัวเลือก (ระดับ/ประเทศ) จากข้อมูลจริง
     function populateFilters(data){
-      const levels = [...new Set(data.map(d=>d.level).filter(Boolean))].sort();
-      const countries = [...new Set(data.map(d=>d.country).filter(Boolean))].sort();
+      const levels = [...new Set(data.map(d => d.level).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+      const countries = [...new Set(data.map(d => d.country).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
 
-      // ล้างเดิม (คง option แรกไว้)
-      dom.level.innerHTML = `<option value="">ระดับ: ทั้งหมด</option>` +
-        levels.map(v=>`<option>${escapeHtml(v)}</option>`).join('');
+      dom.level.innerHTML =
+        `<option value="">ระดับ: ทั้งหมด</option>` +
+        levels.map(v => `<option>${escapeHtml(v)}</option>`).join('');
 
-      dom.country.innerHTML = `<option value="">ประเทศ: ทั้งหมด</option>` +
-        countries.map(v=>`<option>${escapeHtml(v)}</option>`).join('');
+      dom.country.innerHTML =
+        `<option value="">ประเทศ: ทั้งหมด</option>` +
+        countries.map(v => `<option>${escapeHtml(v)}</option>`).join('');
     }
 
-    // ฟังก์ชันกรอง
+    // ================= FILTER & SORT =================
     function applyFilter(){
       const kw = dom.q.value.trim().toLowerCase();
       const role = dom.role.value;
@@ -201,52 +301,52 @@
       const lv = dom.level.value;
       const ct = dom.country.value;
 
-      let out = state.raw.filter(r=>{
-        // ชื่อ (พิมพ์บางส่วนได้)
-        if(kw){
-          const name = (r.name||'').toLowerCase();
-          if(!name.includes(kw)) return false;
+      let out = state.raw.filter(r => {
+        if (kw){
+          const name = (r.name || '').toLowerCase();
+          if (!name.includes(kw)) return false;
         }
-        if(role && r.role !== role) return false;
-        if(st && r.status !== st) return false;
-        if(lv && r.level !== lv) return false;
-        if(ct && r.country !== ct) return false;
+        if (role && r.role !== role) return false;
+        if (st && r.status !== st) return false;
+        if (lv && r.level !== lv) return false;
+        if (ct && r.country !== ct) return false;
         return true;
       });
 
-      // เรียงลำดับตาม state
       out = sortBy(out, state.sortKey, state.sortDir);
-
       state.view = out;
       render();
     }
 
-    // เรียงลำดับ
     function sortBy(arr, key, dir='asc'){
       const s = [...arr].sort((a,b)=>{
-        const A = (a[key]??'').toString().toLowerCase();
-        const B = (b[key]??'').toString().toLowerCase();
-        if(A < B) return -1;
-        if(A > B) return  1;
+        const A = (a[key] || '').toString().toLowerCase();
+        const B = (b[key] || '').toString().toLowerCase();
+        if (A < B) return -1;
+        if (A > B) return  1;
         return 0;
       });
-      return dir==='desc' ? s.reverse() : s;
+      return dir === 'desc' ? s.reverse() : s;
     }
 
-    // วาดตาราง
+    function updateSortIcons(){
+      $$('#tbl thead th .sort').forEach(el => el.textContent = '');
+      const th = $(`#tbl thead th[data-key="${state.sortKey}"] .sort`);
+      if (th) th.textContent = state.sortDir === 'asc' ? '▲' : '▼';
+    }
+
+    // ================= RENDER =================
     function render(){
-      dom.tblBody.innerHTML = state.view.map(row=>{
-        const statusTag = tagStatus(row.status);
-        return `
-          <tr>
-            <td>${escapeHtml(row.name)}</td>
-            <td>${escapeHtml(row.country)}</td>
-            <td>${escapeHtml(row.level)}</td>
-            <td><span class="tag">${escapeHtml(row.role)}</span></td>
-            <td>${statusTag}</td>
-            <td>${escapeHtml(row.remark||'')}</td>
-          </tr>`;
-      }).join('');
+      dom.tblBody.innerHTML = state.view.map(r => `
+        <tr>
+          <td>${escapeHtml(r.name)}</td>
+          <td>${escapeHtml(r.country)}</td>
+          <td>${escapeHtml(r.level)}</td>
+          <td><span class="tag">${escapeHtml(r.role)}</span></td>
+          <td>${tagStatus(r.status)}</td>
+          <td>${escapeHtml(r.remark || '')}</td>
+        </tr>
+      `).join('');
 
       dom.count.textContent = `ทั้งหมด ${state.view.length.toLocaleString('th-TH')} รายการ`;
       updateSortIcons();
@@ -254,41 +354,36 @@
 
     function tagStatus(st=''){
       const s = st.trim();
-      if(!s) return '';
-      const cls = s.toLowerCase()==='active' ? 'green' :
-                  s.toLowerCase()==='inactive' ? 'yellow' : '';
+      if (!s) return '';
+      const lower = s.toLowerCase();
+      let cls = '';
+      if (lower === 'active') cls = 'green';
+      else if (lower === 'inactive' || lower === 'suspended') cls = 'yellow';
       return `<span class="tag ${cls}">${escapeHtml(s)}</span>`;
     }
 
-    // ปลอดภัยต่อ HTML
     function escapeHtml(str=''){
-      return str.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+      return str.replace(/[&<>"']/g, m => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[m]));
     }
 
-    // ไอคอนลูกศร sort บนหัวตาราง
-    function updateSortIcons(){
-      $$('#tbl thead th .sort').forEach(el=>el.textContent='');
-      const th = $(`#tbl thead th[data-key="${state.sortKey}"] .sort`);
-      if(th) th.textContent = state.sortDir==='asc' ? '▲' : '▼';
-    }
-
-    // จัดการเหตุการณ์
+    // ================= EVENTS =================
     function bindEvents(){
-      ['input','change'].forEach(evt=>{
-        dom.q.addEventListener(evt, debounce(applyFilter, 120));
-      });
+      // พิมพ์ค้นหาชื่อ
+      dom.q.addEventListener('input', debounce(applyFilter, 120));
       dom.role.addEventListener('change', applyFilter);
       dom.status.addEventListener('change', applyFilter);
       dom.level.addEventListener('change', applyFilter);
       dom.country.addEventListener('change', applyFilter);
 
-      // คลิกหัวคอลัมน์เพื่อเรียง
-      $$('#tbl thead th').forEach(th=>{
-        th.addEventListener('click', ()=>{
+      // sort เมื่อคลิกหัวคอลัมน์
+      $$('#tbl thead th').forEach(th => {
+        th.addEventListener('click', () => {
           const key = th.getAttribute('data-key');
-          if(!key) return;
-          if(state.sortKey === key){
-            state.sortDir = state.sortDir==='asc' ? 'desc' : 'asc';
+          if (!key) return;
+          if (state.sortKey === key){
+            state.sortDir = (state.sortDir === 'asc') ? 'desc' : 'asc';
           }else{
             state.sortKey = key;
             state.sortDir = 'asc';
@@ -298,25 +393,29 @@
       });
     }
 
-    // debounce ง่ายๆ
-    function debounce(fn, ms=120){
-      let t; 
-      return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); };
+    function debounce(fn, wait=150){
+      let t;
+      return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn(...args), wait);
+      };
     }
 
-    // main
+    // ================= INIT =================
     (async function init(){
       try{
         const csvRows = await loadCSV();
         const data = normalize(csvRows);
         state.raw = data;
         populateFilters(data);
-        dom.updated.textContent = `• อัปเดตล่าสุด ${new Date().toLocaleString('th-TH')}`;
         bindEvents();
-        applyFilter();  // render ครั้งแรก
+        applyFilter();
+
+        dom.updated.textContent = `อัปเดตล่าสุดจาก CSV ณ เวลา ${new Date().toLocaleString('th-TH')}`;
       }catch(err){
         console.error(err);
-        dom.count.innerHTML = `โหลดข้อมูลไม่ได้ <span class="tag yellow">ลองรีเฟรช</span>`;
+        dom.count.innerHTML =
+          `โหลดข้อมูลจาก CSV ไม่ได้ <span class="tag yellow">ตรวจสอบ URL หรือชื่อไฟล์ Umpire_Status_Updates.csv</span>`;
       }
     })();
   </script>
