@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>King Cup 2025 - เลือกประเภทการแข่งขัน</title>
+  <meta name="viewport" content="width=1280" />
+  <style>
+    html, body{
+      margin:0; padding:0;
+      min-width:1280px;
+      font-family: Arial, sans-serif;
+      background:#f4f4f4;
+    }
+    header{
+      background:#003366;
+      color:#fff;
+      padding:18px 20px;
+      font-size:22px;
+      font-weight:bold;
+      text-align:center;
+      position:sticky; top:0; z-index:10;
+    }
+    .back{
+      position:absolute;
+      left:15px; top:18px;
+      color:#fff; text-decoration:none;
+      background:rgba(255,255,255,.15);
+      padding:6px 12px;
+      border-radius:6px;
+      font-size:14px;
+    }
+    .back:hover{ background:rgba(255,255,255,.25); }
+    .wrap{
+      max-width:900px;
+      margin:40px auto 60px;
+      padding:0 20px;
+      text-align:center;
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+    .btn{
+      display:block;
+      background:#0066cc;
+      color:#fff;
+      padding:14px 20px;
+      font-size:17px;
+      border-radius:10px;
+      text-decoration:none;
+      text-align:left;
+      box-shadow:0 2px 8px rgba(0,0,0,.08);
+      transition:background .2s, transform .08s;
+    }
+    .btn:hover{
+      background:#004d99;
+      transform:translateY(-1px);
+    }
+    .btn-title{
+      font-weight:bold;
+      display:block;
+      margin-bottom:4px;
+    }
+    .btn-desc{
+      font-size:14px;
+      opacity:.9;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a class="back" href="index.html">← กลับหน้าแรก</a>
+    King Cup 2025 – เลือกประเภทการแข่งขัน
+  </header>
+
+  <div class="wrap">
+
+    <!-- หมวด อาวุโส -->
+    <a class="btn" href="king-cup-2025-senior.html">
+      <span class="btn-title">อาวุโส</span>
+      <span class="btn-desc">ประเภทการแข่งขันกลุ่มอาวุโสทั้งหมดของ King Cup 2025</span>
+    </a>
+
+    <!-- หมวด เยาวชน -->
+    <a class="btn" href="king-cup-2025-youth.html">
+      <span class="btn-title">เยาวชน</span>
+      <span class="btn-desc">
+        รุ่นอายุ 13, 15, 17, 19 ปี • ชายคู่ • ชายคู่–หญิงคู่ 11 ปี
+      </span>
+    </a>
+
+    <!-- หมวด ยุวชน + ทั่วไป -->
+    <a class="btn" href="king-cup-2025-junior.html">
+      <span class="btn-title">ยุวชน & ทั่วไป</span>
+      <span class="btn-desc">
+        ยุวชน 9, 11 ปี • หญิงคู่ • คู่ผสม • ชายคู่–หญิงคู่ 12–15 ปี • ชายคู่–หญิงคู่ 16–19 ปี • ทั่วไป
+      </span>
+    </a>
+
+  </div>
+</body>
+</html>
