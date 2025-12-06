@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <title>TTAT Result Online</title>
-  <!-- ใช้ layout เดิมของคุณที่ล็อกความกว้าง 1280 -->
   <meta name="viewport" content="width=1280" />
   <style>
     html, body{
@@ -36,17 +35,19 @@
       border-radius:8px;
       text-decoration:none;
       transition:background .3s;
-      width:320px;               /* ให้ปุ่มกว้างเท่ากัน */
+      width:360px;               /* ให้ปุ่มกว้างเท่ากัน */
       text-align:center;
       box-shadow:0 2px 6px rgba(0,0,0,.08);
     }
     .btn:hover{ background:#004d99; }
+
     .btn.secondary{
-      background:#0a7b34;       /* ปุ่มสีเขียวสำหรับ “ค้นหาข้อมูลนักกีฬา” */
+      background:#0a7b34;       /* ปุ่มสีเขียวสำหรับค้นหานักกีฬา */
     }
     .btn.secondary:hover{
       background:#076428;
     }
+
     footer{
       margin:60px 0 30px;
       color:#666;
@@ -55,22 +56,36 @@
   </style>
 </head>
 <body>
+
   <header>TTAT Result Online</header>
 
   <div class="wrap">
-    <!-- ปุ่มไปหน้าเพจรอง ค้นหาข้อมูลนักกีฬา -->
+
+    <!-- ปุ่มค้นหานักกีฬา -->
     <a class="btn secondary" href="search.html">ค้นหาข้อมูลนักกีฬา (Beta)</a>
 
-    <!-- ปุ่มรายการแข่งขันหลัก -->
-    <a class="btn" href="event-khon-kaen-all-thailand-2025-c3.html">Khon Kaen All Thailand 2025 Circuit 3</a>
-    <a class="btn" href="event-set-star-table-tennis-cup-2025-ii.html">SET Star Table Tennis Cup 2025 II</a>
+    <!-- รายการแข่งขันที่ยังใช้งาน -->
+    <a class="btn" href="event-khon-kaen-all-thailand-2025-c3.html">
+      Khon Kaen All Thailand 2025 Circuit 3
+    </a>
 
-    <!-- 🔹 ปุ่มใหม่: King Cup 2025 -->
-    <a class="btn" href="king-cup-2025.html">King Cup 2025</a>
+    <a class="btn" href="event-set-star-table-tennis-cup-2025-ii.html">
+      SET Star Table Tennis Cup 2025 II
+    </a>
+
+    <a class="btn" href="king-cup-2025.html">
+      King Cup 2025
+    </a>
+
+    <a class="btn" href="event-china-thailand-youth-2025.html">
+      China–Thailand Youth Friendship Table Tennis Championships 2025
+    </a>
+
   </div>
 
   <footer>
     © TTAT Result Online
   </footer>
+
 </body>
 </html>
