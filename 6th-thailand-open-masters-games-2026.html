@@ -26,11 +26,18 @@
       top:0;
       z-index:10;
     }
+    .frame-wrap{
+      flex-grow:1;
+      display:flex;
+      justify-content:center;   /* จัด iframe ให้อยู่กึ่งกลางแนวนอน */
+      align-items:flex-start;
+      padding:10px 0 20px;
+    }
     iframe{
       border:none;
-      width:100%;
-      flex-grow:1;
-      display:block;
+      width:700px;
+      height:887px;
+      background:#fff;
     }
   </style>
 </head>
@@ -38,9 +45,11 @@
 
   <header>6th Thailand Open Masters Games 2026</header>
 
-  <iframe
-    src="https://1drv.ms/x/c/f6e31c8d11f28b7e/IQTxmy-V7V5_RaJxdX2p8EpgAaDEiAIzRkz0ofnh57LTZ24?em=2&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True&wdInConfigurator=True&wdInConfigurator=True">
-  </iframe>
+  <div class="frame-wrap">
+    <iframe
+      src="https://1drv.ms/x/c/f6e31c8d11f28b7e/IQQ-7aaj1i0HRb1OE_sOQAPCAWAm_J2SyGyvT2UtxOmmhqk?em=2&wdAllowInteractivity=False&Item='DAY%201'!Print_Area&wdHideGridlines=True&wdInConfigurator=True&wdInConfigurator=True">
+    </iframe>
+  </div>
 
 </body>
 </html>
