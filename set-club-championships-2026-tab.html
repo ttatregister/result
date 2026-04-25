@@ -20,7 +20,6 @@ body{
   flex-direction:column;
 }
 
-/* HEADER */
 header{
   background:#003366;
   color:#fff;
@@ -30,7 +29,6 @@ header{
   font-weight:bold;
 }
 
-/* TAB MENU */
 .tab-menu{
   display:flex;
   justify-content:center;
@@ -58,7 +56,6 @@ header{
   background:#003366;
 }
 
-/* CONTENT */
 .content{
   flex:1;
   display:flex;
@@ -82,28 +79,28 @@ iframe{
 SET Table Tennis Club Championships 2026
 </header>
 
-<!-- TAB BUTTON -->
+<!-- 🔹 TAB MENU (เรียงใหม่) -->
 <div class="tab-menu">
 
-<button class="tab-btn active" onclick="changeTab(this, 'u9')">
-ทีมทั่วไป / U9–11
+<button class="tab-btn active" onclick="changeTab(this, 'youth')">
+เยาวชน U13–19
 </button>
 
 <button class="tab-btn" onclick="changeTab(this, 'senior')">
 ทีมอาวุโส
 </button>
 
-<button class="tab-btn" onclick="changeTab(this, 'youth')">
-เยาวชน U13–19
+<button class="tab-btn" onclick="changeTab(this, 'u9')">
+ทีมทั่วไป / U9–11
 </button>
 
 </div>
 
-<!-- RESULT FRAME -->
+<!-- 🔹 RESULT FRAME (เริ่มที่ Youth) -->
 <div class="content">
 
 <iframe id="resultFrame"
-src="https://1drv.ms/x/c/f6e31c8d11f28b7e/IQTuSDElcYnYQ4wZiUMQTHimAYgB1OLcTfZ-apVRVJMlLo8?em=2&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True">
+src="https://1drv.ms/x/c/f6e31c8d11f28b7e/IQRSZnX25JnvT7DLjVDhPCDTAWxSR5_J3lvi_mHC6K9aHNw?em=2&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True">
 </iframe>
 
 </div>
@@ -111,25 +108,23 @@ src="https://1drv.ms/x/c/f6e31c8d11f28b7e/IQTuSDElcYnYQ4wZiUMQTHimAYgB1OLcTfZ-ap
 <script>
 function changeTab(button, type){
 
-  // ลบ active ทุกปุ่ม
   let buttons = document.querySelectorAll(".tab-btn");
   buttons.forEach(btn => btn.classList.remove("active"));
 
-  // ใส่ active ปุ่มที่กด
   button.classList.add("active");
 
   let frame = document.getElementById("resultFrame");
 
-  if(type === "u9"){
-    frame.src = "https://1drv.ms/x/c/f6e31c8d11f28b7e/IQTuSDElcYnYQ4wZiUMQTHimAYgB1OLcTfZ-apVRVJMlLo8?em=2&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True";
+  if(type === "youth"){
+    frame.src = "https://1drv.ms/x/c/f6e31c8d11f28b7e/IQRSZnX25JnvT7DLjVDhPCDTAWxSR5_J3lvi_mHC6K9aHNw?em=2&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True";
   }
 
   if(type === "senior"){
     frame.src = "https://1drv.ms/x/c/f6e31c8d11f28b7e/IQQUfNbwCzDXSqBYMH77BRkCAfokOn4rxqnAX17zmcnzh7s?em=2&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True";
   }
 
-  if(type === "youth"){
-    frame.src = "https://1drv.ms/x/c/f6e31c8d11f28b7e/IQRSZnX25JnvT7DLjVDhPCDTAWxSR5_J3lvi_mHC6K9aHNw?em=2&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True";
+  if(type === "u9"){
+    frame.src = "https://1drv.ms/x/c/f6e31c8d11f28b7e/IQTuSDElcYnYQ4wZiUMQTHimAYgB1OLcTfZ-apVRVJMlLo8?em=2&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True";
   }
 
 }
