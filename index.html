@@ -4,14 +4,17 @@
   <meta charset="UTF-8" />
   <title>TTAT Result Online</title>
   <meta name="viewport" content="width=1280" />
+
   <style>
     html, body{
-      margin:0; padding:0;
+      margin:0;
+      padding:0;
       min-width:1280px;
       font-family: Arial, sans-serif;
       background:#f4f4f4;
       text-align:center;
     }
+
     header{
       background:#003366;
       color:#fff;
@@ -19,13 +22,15 @@
       font-size:24px;
       font-weight:bold;
     }
+
     .wrap{
       margin-top:60px;
       display:flex;
-      flex-direction:column;     /* เรียงปุ่มแนวตั้ง */
+      flex-direction:column;
       align-items:center;
-      gap:15px;                  /* ระยะห่างระหว่างปุ่ม */
+      gap:15px;
     }
+
     .btn{
       display:block;
       background:#0066cc;
@@ -35,15 +40,19 @@
       border-radius:8px;
       text-decoration:none;
       transition:background .3s;
-      width:360px;               /* ให้ปุ่มกว้างเท่ากัน */
+      width:360px;
       text-align:center;
       box-shadow:0 2px 6px rgba(0,0,0,.08);
     }
-    .btn:hover{ background:#004d99; }
+
+    .btn:hover{
+      background:#004d99;
+    }
 
     .btn.secondary{
-      background:#0a7b34;       /* ปุ่มสีเขียวสำหรับค้นหานักกีฬา */
+      background:#0a7b34;
     }
+
     .btn.secondary:hover{
       background:#076428;
     }
@@ -55,28 +64,37 @@
     }
   </style>
 </head>
+
 <body>
 
-  <header>TTAT Result Online</header>
+<header>
+  TTAT Result Online
+</header>
 
-  <div class="wrap">
+<div class="wrap">
 
-    <!-- ปุ่มค้นหานักกีฬา -->
-    <a class="btn secondary" href="search.html">ค้นหาข้อมูลนักกีฬา (Beta)</a>
+  <!-- ปุ่มค้นหานักกีฬา -->
+  <a class="btn secondary" href="search.html">
+    ค้นหาข้อมูลนักกีฬา (Beta)
+  </a>
 
-<a class="btn" href="event-yasothon-open-2026-schedule.html">
-  ยโสธร โอเพ่น 2026
-</a>
+  <a class="btn" href="event-yasothon-open-2026-schedule.html">
+    ยโสธร โอเพ่น 2026
+  </a>
 
-    <a class="btn" href="set-club-championships-2026-tab.html">
-  SET Table Tennis Club Championships 2026 (All Events)
-</a>
-    
-  </div>
+  <a class="btn" href="set-club-championships-2026-tab.html">
+    SET Table Tennis Club Championships 2026 (All Events)
+  </a>
 
-  <footer>
-    © TTAT Result Online
-  </footer>
+  <a class="btn" href="suratthani-games-41.html">
+    กีฬาเยาวชนแห่งชาติ ครั้งที่ 41 สุราษฎร์ธานีเกมส์
+  </a>
+
+</div>
+
+<footer>
+  © TTAT Result Online
+</footer>
 
 </body>
 </html>
