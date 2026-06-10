@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ตรวจสอบรายชื่อนักกีฬา - การแข่งขันเทเบิลเทนนิส ระนองโอเพ่น</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, "Sarabun", sans-serif;
+      margin: 0;
+      background: #f4f7fb;
+      color: #222;
+    }
+
+    header {
+      background: linear-gradient(135deg, #003b7a, #0074d9);
+      color: white;
+      text-align: center;
+      padding: 28px 16px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 26px;
+    }
+
+    header h2 {
+      margin: 8px 0 0;
+      font-size: 20px;
+      font-weight: 400;
+      color: #eaf4ff;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    .filters {
+      background: white;
+      padding: 18px;
+      border-radius: 14px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    input, select, button {
+      padding: 11px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 15px;
+    }
+
+    button {
+      background: #005bbb;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+
+    button:hover {
+      background: #004799;
+    }
+
+    .summary {
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    th {
+      background: #003b7a;
+      color: white;
+      cursor: pointer;
+    }
+
+    th:hover {
+      background: #005bbb;
+    }
+
+    tr:hover {
+      background: #f1f7ff;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 30px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>ตรวจสอบรายชื่อนักกีฬา</h1>
+  <h2>การแข่งขันเทเบิลเทนนิส ระนองโอเพ่น</h2>
+</header>
+
+<div class="container">
+
+  <div class="filters">
+    <input type="text" id="nameSearch" placeholder="ค้นหาชื่อนักกีฬา">
+    <input type="text" id="codeSearch" placeholder="ค้นหา Code">
+
+    <select id="eventFilter">
+      <option value="">ทุก Event</option>
+    </select>
+
+    <select id="genderFilter">
+      <option value="">ทุก Gender</option>
+    </select>
+
+    <select id="yearFilter">
+      <option value="">ทุก Year</option>
+    </select>
+
+    <button onclick="sortText('Name')">เรียงชื่อ A-Z / ก-ฮ</button>
+    <button onclick="sortText('Team')">เรียงทีม A-Z / ก-ฮ</button>
+    <button onclick="resetFilters()">ล้างการค้นหา</button>
+  </div>
+
+  <div class="summary" id="summary"></div>
+
+  <div id="tableArea" class="loading">กำลังโหลดข้อมูล...</div>
+
+</div>
+
+<script>
+  const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTQi_qkPOXaVMpbXAaGdqv_tpbndqFS425pWQ9IXlD2LY0WBc3o5nQ13yT-_sfFXs9Xy8mh-O2CuVst/pub?output=csv";
+
+  const columns = ["Event", "Code", "Name", "Team", "Rank", "Point", "Gender", "Year", "Age"];
+
+  let allData = [];
+  let filteredData = [];
+  let sortDirection = {};
+
+  Papa.parse(csvUrl, {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete: function(results) {
+      allData = results.data;
+      filteredData = [...allData];
+
+      buildDropdown("Event", "eventFilter");
+      buildDropdown("Gender", "genderFilter");
+      buildDropdown("Year", "yearFilter");
+
+      renderTable(filteredData);
+    },
+    error: function() {
+      document.getElementById("tableArea").innerHTML = "โหลดข้อมูลไม่สำเร็จ กรุณาตรวจสอบลิงก์ Google Sheet";
+    }
+  });
+
+  function buildDropdown(column, elementId) {
+    const select = document.getElementById(elementId);
+    const values = [...new Set(allData.map(row => row[column]).filter(Boolean))];
+
+    values.sort(sortEnglishThenThai);
+
+    values.forEach(value => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = value;
+      select.appendChild(option);
+    });
+  }
+
+  function applyFilters() {
+    const nameText = document.getElementById("nameSearch").value.toLowerCase();
+    const codeText = document.getElementById("codeSearch").value.toLowerCase();
+    const eventValue = document.getElementById("eventFilter").value;
+    const genderValue = document.getElementById("genderFilter").value;
+    const yearValue = document.getElementById("yearFilter").value;
+
+    filteredData = allData.filter(row => {
+      return (
+        String(row.Name || "").toLowerCase().includes(nameText) &&
+        String(row.Code || "").toLowerCase().includes(codeText) &&
+        (eventValue === "" || row.Event === eventValue) &&
+        (genderValue === "" || row.Gender === genderValue) &&
+        (yearValue === "" || row.Year === yearValue)
+      );
+    });
+
+    renderTable(filteredData);
+  }
+
+  function sortEnglishThenThai(a, b) {
+    const textA = String(a || "").trim();
+    const textB = String(b || "").trim();
+
+    const isEnglishA = /^[A-Za-z]/.test(textA);
+    const isEnglishB = /^[A-Za-z]/.test(textB);
+
+    if (isEnglishA && !isEnglishB) return -1;
+    if (!isEnglishA && isEnglishB) return 1;
+
+    return textA.localeCompare(textB, ["en", "th"], { sensitivity: "base" });
+  }
+
+  function sortText(column) {
+    filteredData.sort((a, b) => sortEnglishThenThai(a[column], b[column]));
+    renderTable(filteredData);
+  }
+
+  function sortColumn(column) {
+    sortDirection[column] = !sortDirection[column];
+    const direction = sortDirection[column] ? 1 : -1;
+
+    const numberColumns = ["Rank", "Point", "Year", "Age"];
+
+    filteredData.sort((a, b) => {
+      if (numberColumns.includes(column)) {
+        return (parseFloat(a[column]) - parseFloat(b[column])) * direction;
+      }
+
+      return sortEnglishThenThai(a[column], b[column]) * direction;
+    });
+
+    renderTable(filteredData);
+  }
+
+  function resetFilters() {
+    document.getElementById("nameSearch").value = "";
+    document.getElementById("codeSearch").value = "";
+    document.getElementById("eventFilter").value = "";
+    document.getElementById("genderFilter").value = "";
+    document.getElementById("yearFilter").value = "";
+
+    filteredData = [...allData];
+    renderTable(filteredData);
+  }
+
+  function renderTable(data) {
+    document.getElementById("summary").textContent = `พบข้อมูลทั้งหมด ${data.length} รายการ`;
+
+    if (data.length === 0) {
+      document.getElementById("tableArea").innerHTML = "<div class='loading'>ไม่พบข้อมูล</div>";
+      return;
+    }
+
+    let html = `<div class="table-wrap"><table><thead><tr>`;
+
+    columns.forEach(col => {
+      html += `<th onclick="sortColumn('${col}')">${col}</th>`;
+    });
+
+    html += `</tr></thead><tbody>`;
+
+    data.forEach(row => {
+      html += `<tr>`;
+      columns.forEach(col => {
+        html += `<td>${row[col] || ""}</td>`;
+      });
+      html += `</tr>`;
+    });
+
+    html += `</tbody></table></div>`;
+
+    document.getElementById("tableArea").innerHTML = html;
+  }
+
+  document.getElementById("nameSearch").addEventListener("input", applyFilters);
+  document.getElementById("codeSearch").addEventListener("input", applyFilters);
+  document.getElementById("eventFilter").addEventListener("change", applyFilters);
+  document.getElementById("genderFilter").addEventListener("change", applyFilters);
+  document.getElementById("yearFilter").addEventListener("change", applyFilters);
+</script>
+
+</body>
+</html>
