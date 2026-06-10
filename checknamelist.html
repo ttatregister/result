@@ -2,7 +2,9 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- บังคับให้มือถือแสดงหน้าเว็บแบบ Desktop -->
+  <meta name="viewport" content="width=1400" />
 
   <title>ตรวจสอบรายชื่อนักกีฬา - การแข่งขันเทเบิลเทนนิส ระนองโอเพ่น</title>
 
@@ -36,9 +38,8 @@
     }
 
     .container {
-      max-width: 1200px;
+      width: 1200px;
       margin: 24px auto;
-      padding: 0 16px;
     }
 
     .filters {
@@ -47,7 +48,7 @@
       border-radius: 14px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.08);
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: 1fr 1fr 1fr 120px;
       gap: 12px;
       margin-bottom: 18px;
     }
@@ -88,7 +89,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 900px;
+      min-width: 1100px;
     }
 
     th,
@@ -121,26 +122,6 @@
       background: white;
       border-radius: 14px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-    }
-
-    @media (max-width: 600px) {
-      header h1 {
-        font-size: 22px;
-      }
-
-      header h2 {
-        font-size: 17px;
-      }
-
-      .filters {
-        grid-template-columns: 1fr;
-      }
-
-      th,
-      td {
-        font-size: 13px;
-        padding: 10px;
-      }
     }
   </style>
 </head>
