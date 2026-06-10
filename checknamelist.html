@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>ตรวจสอบรายชื่อนักกีฬา - การแข่งขันเทเบิลเทนนิส ระนองโอเพ่น</title>
 
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -51,11 +52,14 @@
       margin-bottom: 18px;
     }
 
-    input, select, button {
+    input,
+    select,
+    button {
       padding: 11px;
       border: 1px solid #ccc;
       border-radius: 10px;
       font-size: 15px;
+      background: white;
     }
 
     button {
@@ -87,7 +91,8 @@
       min-width: 900px;
     }
 
-    th, td {
+    th,
+    td {
       padding: 12px;
       border-bottom: 1px solid #eee;
       text-align: left;
@@ -113,183 +118,267 @@
       text-align: center;
       padding: 30px;
       font-size: 18px;
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 22px;
+      }
+
+      header h2 {
+        font-size: 17px;
+      }
+
+      .filters {
+        grid-template-columns: 1fr;
+      }
+
+      th,
+      td {
+        font-size: 13px;
+        padding: 10px;
+      }
     }
   </style>
 </head>
 
 <body>
 
-<header>
-  <h1>ตรวจสอบรายชื่อนักกีฬา</h1>
-  <h2>การแข่งขันเทเบิลเทนนิส ระนองโอเพ่น</h2>
-</header>
+  <header>
+    <h1>ตรวจสอบรายชื่อนักกีฬา</h1>
+    <h2>การแข่งขันเทเบิลเทนนิส ระนองโอเพ่น</h2>
+  </header>
 
-<div class="container">
+  <div class="container">
 
-  <div class="filters">
-    <input type="text" id="nameSearch" placeholder="ค้นหาชื่อนักกีฬา">
-    <input type="text" id="codeSearch" placeholder="ค้นหา Code">
+    <div class="filters">
+      <input
+        type="text"
+        id="nameSearch"
+        placeholder="Search Name"
+      />
 
-    <select id="eventFilter">
-      <option value="">All Event</option>
-    </select>
+      <input
+        type="text"
+        id="codeSearch"
+        placeholder="Search Code"
+      />
 
-    <select id="genderFilter">
-      <option value="">All Gender</option>
-    </select>
-    
-    <button onclick="resetFilters()">ล้างการค้นหา</button>
+      <select id="eventFilter">
+        <option value="">All Event</option>
+      </select>
+
+      <button onclick="resetFilters()">Reset</button>
+    </div>
+
+    <div class="summary" id="summary"></div>
+
+    <div id="tableArea" class="loading">
+      กำลังโหลดข้อมูล...
+    </div>
+
   </div>
 
-  <div class="summary" id="summary"></div>
+  <script>
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTQi_qkPOXaVMpbXAaGdqv_tpbndqFS425pWQ9IXlD2LY0WBc3o5nQ13yT-_sfFXs9Xy8mh-O2CuVst/pub?output=csv";
 
-  <div id="tableArea" class="loading">กำลังโหลดข้อมูล...</div>
+    const columns = [
+      "Event",
+      "Code",
+      "Name",
+      "Team",
+      "Rank",
+      "Point",
+      "Gender",
+      "Year",
+      "Age"
+    ];
 
-</div>
+    let allData = [];
+    let filteredData = [];
+    let sortDirection = {};
 
-<script>
-  const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTQi_qkPOXaVMpbXAaGdqv_tpbndqFS425pWQ9IXlD2LY0WBc3o5nQ13yT-_sfFXs9Xy8mh-O2CuVst/pub?output=csv";
+    Papa.parse(csvUrl, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
 
-  const columns = ["Event", "Code", "Name", "Team", "Rank", "Point", "Gender", "Year", "Age"];
+      complete: function(results) {
+        allData = results.data;
+        filteredData = [...allData];
 
-  let allData = [];
-  let filteredData = [];
-  let sortDirection = {};
+        buildDropdown("Event", "eventFilter");
 
-  Papa.parse(csvUrl, {
-    download: true,
-    header: true,
-    skipEmptyLines: true,
-    complete: function(results) {
-      allData = results.data;
-      filteredData = [...allData];
+        renderTable(filteredData);
+      },
 
-      buildDropdown("Event", "eventFilter");
-      buildDropdown("Gender", "genderFilter");
-      buildDropdown("Year", "yearFilter");
+      error: function() {
+        document.getElementById("tableArea").innerHTML =
+          "โหลดข้อมูลไม่สำเร็จ กรุณาตรวจสอบลิงก์ Google Sheet";
+      }
+    });
+
+    function buildDropdown(column, elementId) {
+      const select = document.getElementById(elementId);
+
+      const values = [
+        ...new Set(
+          allData
+            .map(row => row[column])
+            .filter(value => value !== undefined && value !== null && value !== "")
+        )
+      ];
+
+      values.sort(sortEnglishThenThai);
+
+      values.forEach(value => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+      });
+    }
+
+    function applyFilters() {
+      const nameText = document
+        .getElementById("nameSearch")
+        .value
+        .toLowerCase();
+
+      const codeText = document
+        .getElementById("codeSearch")
+        .value
+        .toLowerCase();
+
+      const eventValue = document
+        .getElementById("eventFilter")
+        .value;
+
+      filteredData = allData.filter(row => {
+        const name = String(row.Name || "").toLowerCase();
+        const code = String(row.Code || "").toLowerCase();
+        const event = String(row.Event || "");
+
+        return (
+          name.includes(nameText) &&
+          code.includes(codeText) &&
+          (eventValue === "" || event === eventValue)
+        );
+      });
 
       renderTable(filteredData);
-    },
-    error: function() {
-      document.getElementById("tableArea").innerHTML = "โหลดข้อมูลไม่สำเร็จ กรุณาตรวจสอบลิงก์ Google Sheet";
     }
-  });
 
-  function buildDropdown(column, elementId) {
-    const select = document.getElementById(elementId);
-    const values = [...new Set(allData.map(row => row[column]).filter(Boolean))];
+    function sortEnglishThenThai(a, b) {
+      const textA = String(a || "").trim();
+      const textB = String(b || "").trim();
 
-    values.sort(sortEnglishThenThai);
+      const isEnglishA = /^[A-Za-z]/.test(textA);
+      const isEnglishB = /^[A-Za-z]/.test(textB);
 
-    values.forEach(value => {
-      const option = document.createElement("option");
-      option.value = value;
-      option.textContent = value;
-      select.appendChild(option);
-    });
-  }
+      if (isEnglishA && !isEnglishB) return -1;
+      if (!isEnglishA && isEnglishB) return 1;
 
-  function applyFilters() {
-    const nameText = document.getElementById("nameSearch").value.toLowerCase();
-    const codeText = document.getElementById("codeSearch").value.toLowerCase();
-    const eventValue = document.getElementById("eventFilter").value;
-    const genderValue = document.getElementById("genderFilter").value;
-    const yearValue = document.getElementById("yearFilter").value;
+      return textA.localeCompare(textB, ["en", "th"], {
+        sensitivity: "base"
+      });
+    }
 
-    filteredData = allData.filter(row => {
-      return (
-        String(row.Name || "").toLowerCase().includes(nameText) &&
-        String(row.Code || "").toLowerCase().includes(codeText) &&
-        (eventValue === "" || row.Event === eventValue) &&
-        (genderValue === "" || row.Gender === genderValue) &&
-        (yearValue === "" || row.Year === yearValue)
-      );
-    });
+    function sortColumn(column) {
+      sortDirection[column] = !sortDirection[column];
+      const direction = sortDirection[column] ? 1 : -1;
 
-    renderTable(filteredData);
-  }
+      const numberColumns = [
+        "Rank",
+        "Point",
+        "Year",
+        "Age"
+      ];
 
-  function sortEnglishThenThai(a, b) {
-    const textA = String(a || "").trim();
-    const textB = String(b || "").trim();
+      filteredData.sort((a, b) => {
+        if (numberColumns.includes(column)) {
+          const numA = parseFloat(a[column]) || 0;
+          const numB = parseFloat(b[column]) || 0;
+          return (numA - numB) * direction;
+        }
 
-    const isEnglishA = /^[A-Za-z]/.test(textA);
-    const isEnglishB = /^[A-Za-z]/.test(textB);
+        return sortEnglishThenThai(a[column], b[column]) * direction;
+      });
 
-    if (isEnglishA && !isEnglishB) return -1;
-    if (!isEnglishA && isEnglishB) return 1;
+      renderTable(filteredData);
+    }
 
-    return textA.localeCompare(textB, ["en", "th"], { sensitivity: "base" });
-  }
+    function resetFilters() {
+      document.getElementById("nameSearch").value = "";
+      document.getElementById("codeSearch").value = "";
+      document.getElementById("eventFilter").value = "";
 
-  function sortText(column) {
-    filteredData.sort((a, b) => sortEnglishThenThai(a[column], b[column]));
-    renderTable(filteredData);
-  }
+      filteredData = [...allData];
 
-  function sortColumn(column) {
-    sortDirection[column] = !sortDirection[column];
-    const direction = sortDirection[column] ? 1 : -1;
+      renderTable(filteredData);
+    }
 
-    const numberColumns = ["Rank", "Point", "Year", "Age"];
+    function renderTable(data) {
+      document.getElementById("summary").textContent =
+        `พบข้อมูลทั้งหมด ${data.length} รายการ`;
 
-    filteredData.sort((a, b) => {
-      if (numberColumns.includes(column)) {
-        return (parseFloat(a[column]) - parseFloat(b[column])) * direction;
+      if (data.length === 0) {
+        document.getElementById("tableArea").innerHTML =
+          "<div class='loading'>ไม่พบข้อมูล</div>";
+        return;
       }
 
-      return sortEnglishThenThai(a[column], b[column]) * direction;
-    });
+      let html = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+      `;
 
-    renderTable(filteredData);
-  }
+      columns.forEach(col => {
+        html += `<th onclick="sortColumn('${col}')">${col}</th>`;
+      });
 
-  function resetFilters() {
-    document.getElementById("nameSearch").value = "";
-    document.getElementById("codeSearch").value = "";
-    document.getElementById("eventFilter").value = "";
-    document.getElementById("genderFilter").value = "";
-    document.getElementById("yearFilter").value = "";
+      html += `
+              </tr>
+            </thead>
+            <tbody>
+      `;
 
-    filteredData = [...allData];
-    renderTable(filteredData);
-  }
+      data.forEach(row => {
+        html += "<tr>";
 
-  function renderTable(data) {
-    document.getElementById("summary").textContent = `พบข้อมูลทั้งหมด ${data.length} รายการ`;
+        columns.forEach(col => {
+          html += `<td>${row[col] || ""}</td>`;
+        });
 
-    if (data.length === 0) {
-      document.getElementById("tableArea").innerHTML = "<div class='loading'>ไม่พบข้อมูล</div>";
-      return;
+        html += "</tr>";
+      });
+
+      html += `
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      document.getElementById("tableArea").innerHTML = html;
     }
 
-    let html = `<div class="table-wrap"><table><thead><tr>`;
+    document
+      .getElementById("nameSearch")
+      .addEventListener("input", applyFilters);
 
-    columns.forEach(col => {
-      html += `<th onclick="sortColumn('${col}')">${col}</th>`;
-    });
+    document
+      .getElementById("codeSearch")
+      .addEventListener("input", applyFilters);
 
-    html += `</tr></thead><tbody>`;
-
-    data.forEach(row => {
-      html += `<tr>`;
-      columns.forEach(col => {
-        html += `<td>${row[col] || ""}</td>`;
-      });
-      html += `</tr>`;
-    });
-
-    html += `</tbody></table></div>`;
-
-    document.getElementById("tableArea").innerHTML = html;
-  }
-
-  document.getElementById("nameSearch").addEventListener("input", applyFilters);
-  document.getElementById("codeSearch").addEventListener("input", applyFilters);
-  document.getElementById("eventFilter").addEventListener("change", applyFilters);
-  document.getElementById("genderFilter").addEventListener("change", applyFilters);
-  document.getElementById("yearFilter").addEventListener("change", applyFilters);
-</script>
+    document
+      .getElementById("eventFilter")
+      .addEventListener("change", applyFilters);
+  </script>
 
 </body>
 </html>
