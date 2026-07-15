@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=1400" />
-  <title>Entry List - Doubles - Master, Hope & Kids 2026 C.2</title>
+
+  <title>Entry List - Doubles</title>
 
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
@@ -31,13 +32,13 @@
 
     header .type-title {
       font-size: 24px;
-      margin: 8px 0 0;
+      margin-top: 8px;
       color: #eaf4ff;
     }
 
     header .event-title {
       font-size: 20px;
-      margin: 8px 0 0;
+      margin-top: 8px;
       font-weight: 400;
       color: #d9ecff;
     }
@@ -58,7 +59,9 @@
       margin-bottom: 18px;
     }
 
-    input, select, button {
+    input,
+    select,
+    button {
       padding: 11px;
       border: 1px solid #ccc;
       border-radius: 10px;
@@ -96,7 +99,8 @@
       min-width: 1250px;
     }
 
-    th, td {
+    th,
+    td {
       padding: 12px;
       border-bottom: 1px solid #eee;
       text-align: left;
@@ -131,222 +135,372 @@
 
 <body>
 
-<header>
-  <h1 class="main-title">ENTRY LIST</h1>
-  <div class="type-title">Doubles</div>
-  <div class="event-title">Master, Hope & Kids 2026 C.2</div>
-</header>
+  <header>
+    <h1 class="main-title">ENTRY LIST</h1>
+    <div class="type-title">Doubles</div>
+    <div class="event-title" id="eventTitle">
+      กำลังโหลดชื่อรายการ...
+    </div>
+  </header>
 
-<div class="container">
+  <div class="container">
 
-  <div class="filters">
-    <input type="text" id="nameSearch" placeholder="Search Player Name" />
-    <input type="text" id="codeSearch" placeholder="Search Player Code" />
-    <input type="text" id="teamSearch" placeholder="Search Team" />
+    <div class="filters">
+      <input
+        type="text"
+        id="nameSearch"
+        placeholder="Search Player Name"
+      />
 
-    <select id="eventFilter">
-      <option value="">All Event</option>
-    </select>
+      <input
+        type="text"
+        id="codeSearch"
+        placeholder="Search Player Code"
+      />
 
-    <button onclick="resetFilters()">Reset</button>
+      <input
+        type="text"
+        id="teamSearch"
+        placeholder="Search Team"
+      />
+
+      <select id="eventFilter">
+        <option value="">All Event</option>
+      </select>
+
+      <button onclick="resetFilters()">Reset</button>
+    </div>
+
+    <div class="summary" id="summary"></div>
+
+    <div id="tableArea" class="loading">
+      กำลังโหลดข้อมูล...
+    </div>
+
   </div>
 
-  <div class="summary" id="summary"></div>
-  <div id="tableArea" class="loading">กำลังโหลดข้อมูล...</div>
+  <script>
+    const csvUrl =
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vTQi_qkPOXaVMpbXAaGdqv_tpbndqFS425pWQ9IXlD2LY0WBc3o5nQ13yT-_sfFXs9Xy8mh-O2CuVst/pub?gid=179209219&single=true&output=csv";
 
-</div>
-
-<script>
-  const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTQi_qkPOXaVMpbXAaGdqv_tpbndqFS425pWQ9IXlD2LY0WBc3o5nQ13yT-_sfFXs9Xy8mh-O2CuVst/pub?gid=179209219&single=true&output=csv";
-
-  const columns = [
-    "Event",
-    "Team",
-    "Code1",
-    "Name1",
-    "Rank1",
-    "Point1",
-    "Age1",
-    "Code2",
-    "Name2",
-    "Rank2",
-    "Point2",
-    "Age2",
-    "Total"
-  ];
-
-  let allData = [];
-  let filteredData = [];
-  let sortDirection = {};
-
-  Papa.parse(csvUrl, {
-    download: true,
-    header: true,
-    skipEmptyLines: true,
-
-    complete: function(results) {
-      allData = results.data;
-      filteredData = [...allData];
-
-      buildDropdown("Event", "eventFilter");
-      renderTable(filteredData);
-    },
-
-    error: function() {
-      document.getElementById("tableArea").innerHTML =
-        "โหลดข้อมูลไม่สำเร็จ กรุณาตรวจสอบลิงก์ Google Sheet";
-    }
-  });
-
-  function buildDropdown(column, elementId) {
-    const select = document.getElementById(elementId);
-
-    const values = [
-      ...new Set(
-        allData
-          .map(row => row[column])
-          .filter(value => value !== undefined && value !== null && value !== "")
-      )
-    ];
-
-    values.sort(sortEnglishThenThai);
-
-    values.forEach(value => {
-      const option = document.createElement("option");
-      option.value = value;
-      option.textContent = value;
-      select.appendChild(option);
-    });
-  }
-
-  function applyFilters() {
-    const nameText = document.getElementById("nameSearch").value.toLowerCase();
-    const codeText = document.getElementById("codeSearch").value.toLowerCase();
-    const teamText = document.getElementById("teamSearch").value.toLowerCase();
-    const eventValue = document.getElementById("eventFilter").value;
-
-    filteredData = allData.filter(row => {
-      const name1 = String(row.Name1 || "").toLowerCase();
-      const name2 = String(row.Name2 || "").toLowerCase();
-
-      const code1 = String(row.Code1 || "").toLowerCase();
-      const code2 = String(row.Code2 || "").toLowerCase();
-
-      const team = String(row.Team || "").toLowerCase();
-      const event = String(row.Event || "");
-
-      return (
-        (name1.includes(nameText) || name2.includes(nameText)) &&
-        (code1.includes(codeText) || code2.includes(codeText)) &&
-        team.includes(teamText) &&
-        (eventValue === "" || event === eventValue)
-      );
-    });
-
-    renderTable(filteredData);
-  }
-
-  function sortEnglishThenThai(a, b) {
-    const textA = String(a || "").trim();
-    const textB = String(b || "").trim();
-
-    const isEnglishA = /^[A-Za-z]/.test(textA);
-    const isEnglishB = /^[A-Za-z]/.test(textB);
-
-    if (isEnglishA && !isEnglishB) return -1;
-    if (!isEnglishA && isEnglishB) return 1;
-
-    return textA.localeCompare(textB, ["en", "th"], {
-      sensitivity: "base"
-    });
-  }
-
-  function sortColumn(column) {
-    sortDirection[column] = !sortDirection[column];
-    const direction = sortDirection[column] ? 1 : -1;
-
-    const numberColumns = [
+    const columns = [
+      "Event",
+      "Team",
+      "Code1",
+      "Name1",
       "Rank1",
       "Point1",
       "Age1",
+      "Code2",
+      "Name2",
       "Rank2",
       "Point2",
       "Age2",
       "Total"
     ];
 
-    filteredData.sort((a, b) => {
-      if (numberColumns.includes(column)) {
-        const numA = parseFloat(a[column]) || 0;
-        const numB = parseFloat(b[column]) || 0;
-        return (numA - numB) * direction;
-      }
+    let allData = [];
+    let filteredData = [];
+    let sortDirection = {};
 
-      return sortEnglishThenThai(a[column], b[column]) * direction;
+    Papa.parse(csvUrl, {
+      download: true,
+      header: false,
+      skipEmptyLines: false,
+
+      complete: function(results) {
+        const rows = results.data;
+
+        if (!rows || rows.length < 4) {
+          showLoadError(
+            "ไม่พบข้อมูล หรือโครงสร้าง Google Sheet ไม่ถูกต้อง"
+          );
+          return;
+        }
+
+        const eventName = String(rows[0][0] || "").trim();
+        const headers = rows[2].map(value =>
+          String(value || "").trim()
+        );
+
+        document.getElementById("eventTitle").textContent =
+          eventName || "ไม่พบชื่อรายการ";
+
+        document.title =
+          `Entry List - Doubles - ${eventName || "Tournament"}`;
+
+        const dataRows = rows
+          .slice(3)
+          .filter(row =>
+            row.some(value =>
+              String(value || "").trim() !== ""
+            )
+          );
+
+        allData = dataRows.map(row => {
+          const item = {};
+
+          headers.forEach((header, index) => {
+            if (header) {
+              item[header] =
+                String(row[index] || "").trim();
+            }
+          });
+
+          return item;
+        });
+
+        filteredData = [...allData];
+
+        buildDropdown("Event", "eventFilter");
+        renderTable(filteredData);
+      },
+
+      error: function() {
+        showLoadError(
+          "โหลดข้อมูลไม่สำเร็จ กรุณาตรวจสอบลิงก์ Google Sheet"
+        );
+      }
     });
 
-    renderTable(filteredData);
-  }
+    function showLoadError(message) {
+      document.getElementById("eventTitle").textContent =
+        "โหลดข้อมูลไม่สำเร็จ";
 
-  function resetFilters() {
-    document.getElementById("nameSearch").value = "";
-    document.getElementById("codeSearch").value = "";
-    document.getElementById("teamSearch").value = "";
-    document.getElementById("eventFilter").value = "";
-
-    filteredData = [...allData];
-    renderTable(filteredData);
-  }
-
-  function renderTable(data) {
-    document.getElementById("summary").textContent =
-      `Total Entries : ${data.length} Pairs`;
-
-    if (data.length === 0) {
       document.getElementById("tableArea").innerHTML =
-        "<div class='loading'>ไม่พบข้อมูล</div>";
-      return;
+        `<div class="loading">${escapeHtml(message)}</div>`;
     }
 
-    let html = `
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-    `;
+    function buildDropdown(column, elementId) {
+      const select = document.getElementById(elementId);
 
-    columns.forEach(col => {
-      html += `<th onclick="sortColumn('${col}')">${col}</th>`;
-    });
+      const values = [
+        ...new Set(
+          allData
+            .map(row =>
+              String(row[column] || "").trim()
+            )
+            .filter(Boolean)
+        )
+      ];
 
-    html += `
-            </tr>
-          </thead>
-          <tbody>
-    `;
+      values.sort(sortEnglishThenThai);
 
-    data.forEach(row => {
-      html += "<tr>";
-      columns.forEach(col => {
-        html += `<td>${row[col] || ""}</td>`;
+      values.forEach(value => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
       });
-      html += "</tr>";
-    });
+    }
 
-    html += `
-          </tbody>
-        </table>
-      </div>
-    `;
+    function applyFilters() {
+      const nameText = document
+        .getElementById("nameSearch")
+        .value
+        .trim()
+        .toLowerCase();
 
-    document.getElementById("tableArea").innerHTML = html;
-  }
+      const codeText = document
+        .getElementById("codeSearch")
+        .value
+        .trim()
+        .toLowerCase();
 
-  document.getElementById("nameSearch").addEventListener("input", applyFilters);
-  document.getElementById("codeSearch").addEventListener("input", applyFilters);
-  document.getElementById("teamSearch").addEventListener("input", applyFilters);
-  document.getElementById("eventFilter").addEventListener("change", applyFilters);
-</script>
+      const teamText = document
+        .getElementById("teamSearch")
+        .value
+        .trim()
+        .toLowerCase();
+
+      const eventValue = document
+        .getElementById("eventFilter")
+        .value;
+
+      filteredData = allData.filter(row => {
+        const name1 =
+          String(row.Name1 || "").toLowerCase();
+
+        const name2 =
+          String(row.Name2 || "").toLowerCase();
+
+        const code1 =
+          String(row.Code1 || "").toLowerCase();
+
+        const code2 =
+          String(row.Code2 || "").toLowerCase();
+
+        const team =
+          String(row.Team || "").toLowerCase();
+
+        const event =
+          String(row.Event || "");
+
+        return (
+          (name1.includes(nameText) ||
+            name2.includes(nameText)) &&
+          (code1.includes(codeText) ||
+            code2.includes(codeText)) &&
+          team.includes(teamText) &&
+          (eventValue === "" ||
+            event === eventValue)
+        );
+      });
+
+      renderTable(filteredData);
+    }
+
+    function sortEnglishThenThai(a, b) {
+      const textA = String(a || "").trim();
+      const textB = String(b || "").trim();
+
+      const isEnglishA = /^[A-Za-z]/.test(textA);
+      const isEnglishB = /^[A-Za-z]/.test(textB);
+
+      if (isEnglishA && !isEnglishB) return -1;
+      if (!isEnglishA && isEnglishB) return 1;
+
+      return textA.localeCompare(textB, ["en", "th"], {
+        sensitivity: "base",
+        numeric: true
+      });
+    }
+
+    function sortColumn(column) {
+      sortDirection[column] = !sortDirection[column];
+      const direction =
+        sortDirection[column] ? 1 : -1;
+
+      const numberColumns = [
+        "Rank1",
+        "Point1",
+        "Age1",
+        "Rank2",
+        "Point2",
+        "Age2",
+        "Total"
+      ];
+
+      filteredData.sort((a, b) => {
+        if (numberColumns.includes(column)) {
+          const valueA =
+            String(a[column] || "").trim();
+
+          const valueB =
+            String(b[column] || "").trim();
+
+          const numA =
+            valueA === ""
+              ? Number.POSITIVE_INFINITY
+              : Number(valueA);
+
+          const numB =
+            valueB === ""
+              ? Number.POSITIVE_INFINITY
+              : Number(valueB);
+
+          return (numA - numB) * direction;
+        }
+
+        return (
+          sortEnglishThenThai(
+            a[column],
+            b[column]
+          ) * direction
+        );
+      });
+
+      renderTable(filteredData);
+    }
+
+    function resetFilters() {
+      document.getElementById("nameSearch").value = "";
+      document.getElementById("codeSearch").value = "";
+      document.getElementById("teamSearch").value = "";
+      document.getElementById("eventFilter").value = "";
+
+      filteredData = [...allData];
+      renderTable(filteredData);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function renderTable(data) {
+      document.getElementById("summary").textContent =
+        `Total Entries : ${data.length} Pairs`;
+
+      if (data.length === 0) {
+        document.getElementById("tableArea").innerHTML =
+          "<div class='loading'>ไม่พบข้อมูล</div>";
+        return;
+      }
+
+      let html = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+      `;
+
+      columns.forEach(column => {
+        html += `
+          <th onclick="sortColumn('${column}')">
+            ${escapeHtml(column)}
+          </th>
+        `;
+      });
+
+      html += `
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      data.forEach(row => {
+        html += "<tr>";
+
+        columns.forEach(column => {
+          html += `
+            <td>${escapeHtml(row[column] || "")}</td>
+          `;
+        });
+
+        html += "</tr>";
+      });
+
+      html += `
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      document.getElementById("tableArea").innerHTML =
+        html;
+    }
+
+    document
+      .getElementById("nameSearch")
+      .addEventListener("input", applyFilters);
+
+    document
+      .getElementById("codeSearch")
+      .addEventListener("input", applyFilters);
+
+    document
+      .getElementById("teamSearch")
+      .addEventListener("input", applyFilters);
+
+    document
+      .getElementById("eventFilter")
+      .addEventListener("change", applyFilters);
+  </script>
 
 </body>
 </html>
